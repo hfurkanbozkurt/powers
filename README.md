@@ -7,7 +7,7 @@ Documentation is available at https://kiro.dev/docs/powers/
 ## Available Powers
 
 ### aurora-dsql
-**AWS Aurora DSQL** - PostgreSQL-compatible serverless distributed SQL database with Aurora DSQL-specific constraints and capabilities.
+**Amazon Aurora DSQL** - PostgreSQL-compatible serverless distributed SQL database with Aurora DSQL-specific constraints and capabilities.
 
 **MCP Servers:** aurora-dsql, aws-core (optional)
 
