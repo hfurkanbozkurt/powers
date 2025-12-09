@@ -2,7 +2,7 @@
 name: "aws-agentcore"
 displayName: "AWS Bedrock AgentCore"
 description: "Build, test, and deploy AI agents using AWS Bedrock AgentCore with local development workflow"
-keywords: ["agentcore", "bedrock", "aws", "agents", "ai", "strands", "development", "agent"]
+keywords: ["agentcore", "bedrock", "aws", "agents", "ai", "development", "agent"]
 author: "AWS"
 ---
 
@@ -29,18 +29,12 @@ AgentCore supports multiple agent SDKs (Strands, Claude, OpenAI) and model provi
 
 ## Available MCP Tools
 
-This power provides two MCP servers:
-
-### agentcore-mcp-server
+This power provides the agentcore-mcp-server:
 - `search_agentcore_docs` - Search AgentCore documentation
 - `fetch_agentcore_doc` - Retrieve specific documentation pages
 - `manage_agentcore_runtime` - Manage agent runtime configuration
 - `manage_agentcore_memory` - Handle agent memory operations
 - `manage_agentcore_gateway` - Configure agent gateway settings
-
-### strands-mcp-server
-- `search_docs` - Search Strands framework documentation
-- `fetch_doc` - Retrieve Strands documentation pages
 
 ## Getting Started
 
@@ -96,14 +90,6 @@ usePower("agentcore", "agentcore-mcp-server", "manage_agentcore_memory", {})
 Get gateway configuration and deployment instructions:
 ```
 usePower("agentcore", "agentcore-mcp-server", "manage_agentcore_gateway", {})
-```
-
-### Search Strands Documentation
-
-```
-usePower("agentcore", "strands-mcp-server", "search_docs", {
-  "query": "agent memory"
-})
 ```
 
 ## Troubleshooting

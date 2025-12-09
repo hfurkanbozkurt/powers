@@ -11,15 +11,6 @@
         "manage_agentcore_memory",
         "manage_agentcore_gateway"
       ]
-    },
-    "strands-mcp-server": {
-      "command": "uvx",
-      "args": ["strands-agents-mcp-server"],
-      "disabled": false,
-      "autoApprove": [
-        "search_docs",
-        "fetch_doc"
-      ]
     }
-  }
+ }
 }
