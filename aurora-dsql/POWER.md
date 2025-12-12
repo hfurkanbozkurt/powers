@@ -313,8 +313,8 @@ usePower("dsql", "aurora-dsql", "execute", {
 
 - **SHOULD read guidelines first** - Check [development_guide.md](steering/development-guide.md) before making schema changes
 - **SHOULD Execute queries directly** - PREFER MCP tools for ad-hoc queries 
-- **REQUIRED: Follow DDL Guidelines** - Refer to [DDL Rules](#ddl-rules)
-- **SHALL repeatedly generate fresh tokens** - Refer to [Connection Limits](#connection-limits)
+- **REQUIRED: Follow DDL Guidelines** - Refer to [DDL Rules](steering/development-guide.md#schema-ddl-rules)
+- **SHALL repeatedly generate fresh tokens** - Refer to [Connection Limits](steering/development-guide.md#connection-rules)
 - **ALWAYS use ASYNC indexes** - `CREATE INDEX ASYNC` is mandatory
 - **ALWAYS validate references in code** - implement referential integrity at the application layer 
 - **MUST Serialize arrays/JSON as TEXT** - Store arrays/JSON as TEXT (comma separated, JSON.stringify)
@@ -326,23 +326,9 @@ usePower("dsql", "aurora-dsql", "execute", {
 - **SHOULD test any migrations** - Verify DDL on dev clusters before production
 - **SHOULD use partial indexes** - For sparse data with WHERE clauses
 - **Plan for Scale** - DSQL is designed to optimize for massive scales without latency drops
-
-### DDL Rules
-- One DDL statement per operation
-- No DDL in transactions
-- All indexes must use ASYNC
-- To add a column with DEFAULT or NOT NULL:
-  - MUST issue ADD COLUMN specifying only the column name and data type
-  - MUST then issue UPDATE to populate existing rows
-  - MAY then issue ALTER COLUMN to apply the constraint
-- MUST issue a separate ALTER TABLE statement for each column modification.
-
-### Connection Limits
-- 15-minute token expiry
-- 60-minute connection maximum
-- 10,000 connections per cluster
-- SSL required
-
+- **Plan for Scale** - DSQL is designed to optimize for massive scales without latency drops
+- **SHOULD use connection pooling in production applications** - Refer to [Connection Pooling](steering/development-guide.md#connection-pooling-recommended)
+- **SHOULD debug with the troubleshooting guide:** - Always refer to the resources and guidelines in [troubleshooting.md](steering/troubleshooting.md)
 
 ## Additional Resources
 
