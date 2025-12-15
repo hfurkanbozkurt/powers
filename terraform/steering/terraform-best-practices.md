@@ -24,13 +24,17 @@ module/
 └── README.md        # Docs
 ```
 
+Add new resources to the `main.tf` file. Once this file contains more than 15 resources, put additional resources into their own separate .tf files. For example, if adding OpenSearch resources, put them in a file named, `opensearch.tf`.
+
+Always add new outputs to the `outputs.tf` file.
+
 ## Variables
 
 ```hcl
 variable "environment" {
   description = "Deployment environment"
   type        = string
-  
+
   validation {
     condition     = contains(["dev", "staging", "prod"], var.environment)
     error_message = "Must be dev, staging, or prod."
@@ -51,7 +55,7 @@ variable "database_password" {
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
   version = "5.1.0"
-  
+
   name = "my-vpc"
   cidr = "10.0.0.0/16"
 }
