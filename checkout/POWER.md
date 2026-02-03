@@ -1,6 +1,6 @@
 ---
 name: "checkout-api-reference"
-displayName: "Checkout.com Developer Experience MCP"
+displayName: "Checkout.com Global Payments"
 description: "Access Checkout.com's comprehensive API documentation with intelligent search and detailed operation information for payments, customers, disputes, and more."
 version: "1.0.0"
 author: "Checkout.com"
