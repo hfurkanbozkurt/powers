@@ -13,6 +13,14 @@ Documentation is available at https://kiro.dev/docs/powers/
 
 ---
 
+### aws-healthomics
+
+**Create and Manage Bioinformatics Workflows with AWS HealthOmics** - create, migrate, run, debug and identify optimization opportunities for bioinformatics workflows in AWS HealthOmics.
+
+**MCP Servers:** awslabs.aws-healthomics-mcp-server
+
+---
+
 ### aws-infrastructure-as-code
 **Build AWS infrastructure with CDK and CloudFormation** - Generate well-architected AWS infrastructure with CDK and CloudFormation - access latest documentation, validate templates, and troubleshoot deployments.
 
