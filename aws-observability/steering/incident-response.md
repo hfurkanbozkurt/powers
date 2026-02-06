@@ -1,0 +1,545 @@
+# Incident Response and Troubleshooting
+
+## Purpose
+This steering file provides comprehensive guidance for responding to incidents and troubleshooting issues using the full AWS observability stack.
+
+## When to Load This Steering
+Load this when the user needs to:
+- Respond to production incidents
+- Troubleshoot application errors or performance issues
+- Investigate service outages
+- Perform root cause analysis
+- Create incident reports and postmortems
+
+## Incident Response Framework
+
+### Phase 1: Detection and Triage
+
+**Objectives**:
+- Quickly identify the issue
+- Assess severity and impact
+- Determine affected services and users
+
+**Actions**:
+1. **Check Active Alarms**
+   - Query CloudWatch for alarms in ALARM state
+   - Review alarm history to understand timing
+   - Identify which metrics triggered alarms
+
+2. **Review Application Signals**
+   - Check service health and SLO status
+   - Identify services with elevated error rates
+   - Review service maps for dependency issues
+
+3. **Assess Impact**
+   - Query logs for error volume
+   - Check request counts and success rates
+   - Determine user-facing impact
+
+**Severity Classification**:
+- **SEV1 (Critical)**: Complete service outage, data loss, security breach
+- **SEV2 (High)**: Major functionality impaired, significant user impact
+- **SEV3 (Medium)**: Partial functionality impaired, workaround available
+- **SEV4 (Low)**: Minor issue, minimal user impact
+- **SEV5 (Informational)**: No immediate impact, cosmetic or non-urgent improvement
+
+### Phase 2: Investigation
+
+**Objectives**:
+- Gather evidence and data
+- Identify root cause
+- Understand the failure chain
+
+**Data Collection**:
+
+1. **CloudWatch Logs Insights**
+   ```
+   # Find all errors in the incident timeframe
+   fields @timestamp, @logStream, @message, level, errorType, requestId
+   | filter level = "ERROR"
+   | sort @timestamp asc
+   | limit 1000
+   ```
+
+2. **Application Signals Traces**
+   - Search for failed traces during incident window
+   - Analyze trace timelines for bottlenecks
+   - Examine error spans for exception details
+   - Review service dependencies
+
+3. **CloudWatch Metrics**
+   - Get metric data for affected resources
+   - Compare with baseline/normal behavior
+   - Identify metric anomalies
+   - Check for resource exhaustion (CPU, memory, connections)
+
+4. **CloudTrail Events**
+   - Query for recent configuration changes
+   - Check for deployments or infrastructure modifications
+   - Identify who made changes and when
+   - Review IAM permission changes
+
+**Correlation Workflow**:
+```
+1. Identify incident start time from alarms
+2. Query logs for errors starting at that time
+3. Extract trace IDs from error logs
+4. Analyze traces for failure points
+5. Check CloudTrail for changes before incident
+6. Correlate metrics with error patterns
+```
+
+### Phase 3: Mitigation
+
+**Objectives**:
+- Stop the bleeding
+- Restore service functionality
+- Minimize user impact
+
+**Common Mitigation Strategies**:
+
+1. **Rollback Deployment**
+   - Check CloudTrail for recent deployments
+   - Identify deployment time vs incident start
+   - Rollback to previous stable version
+   - Verify service recovery
+
+2. **Scale Resources**
+   - Check CloudWatch Metrics for resource constraints
+   - Increase capacity (EC2 instances, Lambda concurrency)
+   - Add read replicas for database load
+   - Enable auto-scaling if not already active
+
+3. **Circuit Breaker**
+   - Identify failing downstream dependency
+   - Implement circuit breaker or fallback
+   - Route traffic away from failing component
+   - Enable degraded mode operation
+
+4. **Rate Limiting**
+   - Identify traffic spike or abuse
+   - Implement rate limiting at API Gateway
+   - Block malicious IPs
+   - Enable WAF rules
+
+5. **Database Optimization**
+   - Identify slow queries in logs
+   - Add missing indexes
+   - Optimize query patterns
+   - Scale database resources
+
+### Phase 4: Recovery Verification
+
+**Objectives**:
+- Confirm service is restored
+- Validate metrics are normal
+- Ensure no secondary issues
+
+**Verification Steps**:
+
+1. **Check Alarms**
+   - Verify alarms have returned to OK state
+   - Monitor for alarm flapping
+   - Review alarm history
+
+2. **Validate Application Signals**
+   - Check error rates have normalized
+   - Verify latency is within SLO targets
+   - Review service map for healthy dependencies
+
+3. **Query Logs**
+   ```
+   # Verify error rate has decreased
+   fields @timestamp, level
+   | stats count(*) as totalLogs, 
+          sum(level = "ERROR") as errorCount 
+     by bin(1m)
+   | sort @timestamp asc
+   | limit 60
+   ```
+
+4. **Monitor Metrics**
+   - Check CPU, memory, and network utilization
+   - Verify request rates and latencies
+   - Monitor error rates and success rates
+
+### Phase 5: Root Cause Analysis
+
+**Objectives**:
+- Understand why the incident occurred
+- Identify contributing factors
+- Document findings
+
+**Analysis Framework**:
+
+1. **Timeline Construction**
+   - Create detailed timeline of events
+   - Include all changes and observations
+   - Mark incident start, detection, mitigation, and resolution
+
+2. **Five Whys Analysis**
+   ```
+   Problem: API returned 500 errors
+   
+   Why? Lambda function timed out
+   Why? Database queries were slow
+   Why? Database was under heavy load
+   Why? New feature caused N+1 query problem
+   Why? Code review didn't catch the inefficient query pattern
+   
+   Root Cause: Insufficient code review process for database queries
+   ```
+
+3. **Contributing Factors**
+   - Technical factors (code bugs, configuration errors)
+   - Process factors (inadequate testing, missing monitoring)
+   - Human factors (knowledge gaps, communication issues)
+
+4. **Evidence Collection**
+   - Log excerpts showing errors
+   - Metric graphs showing anomalies
+   - Trace examples demonstrating failures
+   - CloudTrail events showing changes
+
+### Phase 6: Postmortem and Prevention
+
+**Objectives**:
+- Document incident for future reference
+- Identify preventive measures
+- Implement improvements
+
+**Postmortem Template**:
+
+```markdown
+# Incident Postmortem: [Incident Title]
+
+## Summary
+- **Date**: YYYY-MM-DD
+- **Duration**: X hours Y minutes
+- **Severity**: SEVX
+- **Impact**: Description of user impact
+- **Root Cause**: Brief root cause statement
+
+## Timeline
+- HH:MM - Incident began
+- HH:MM - First alert triggered
+- HH:MM - Investigation started
+- HH:MM - Root cause identified
+- HH:MM - Mitigation applied
+- HH:MM - Service restored
+- HH:MM - Incident closed
+
+## What Happened
+Detailed description of the incident
+
+## Root Cause
+Detailed root cause analysis with evidence
+
+## Resolution
+How the incident was resolved
+
+## Impact
+- Users affected: X
+- Requests failed: Y
+- Latency impact: P50/P95/P99 degradation during incident window
+- Revenue impact: $Z
+- SLO impact: A% error budget consumed
+
+## Action Items
+1. [ ] Immediate fix (Owner, Due Date)
+2. [ ] Monitoring improvement (Owner, Due Date)
+3. [ ] Process change (Owner, Due Date)
+4. [ ] Documentation update (Owner, Due Date)
+
+## Lessons Learned
+What went well and what could be improved
+```
+
+**Prevention Strategies**:
+
+1. **Monitoring Improvements**
+   - Add missing alarms
+   - Improve alarm thresholds
+   - Create composite alarms for complex scenarios
+   - Set up SLOs for critical services
+
+2. **Testing Enhancements**
+   - Add test cases for failure scenario
+   - Implement chaos engineering
+   - Load testing for capacity planning
+   - Integration testing for dependencies
+
+3. **Process Changes**
+   - Update deployment procedures
+   - Improve code review checklist
+   - Enhance runbook documentation
+   - Implement gradual rollouts
+
+4. **Architecture Improvements**
+   - Add redundancy for single points of failure
+   - Implement circuit breakers
+   - Add caching layers
+   - Improve error handling
+
+## Common Incident Patterns
+
+### Pattern 1: Deployment-Related Incident
+
+**Symptoms**:
+- Errors spike immediately after deployment
+- Specific service shows elevated error rate
+- Traces show new error types
+
+**Investigation**:
+```
+# Find errors after deployment time
+fields @timestamp, @message, errorType
+| filter level = "ERROR"
+| stats count(*) as errorCount by errorType
+| sort errorCount desc
+| limit 20
+```
+
+**Mitigation**: Rollback deployment
+
+**Prevention**: 
+- Implement canary deployments
+- Add integration tests
+- Improve staging environment
+
+### Pattern 2: Resource Exhaustion
+
+**Symptoms**:
+- Gradual performance degradation
+- Timeouts and connection errors
+- High CPU or memory utilization
+
+**Investigation**:
+- Check CloudWatch Metrics for resource utilization
+- Query logs for timeout errors
+- Review Application Signals for latency increases
+
+**Mitigation**: Scale resources, optimize code
+
+**Prevention**:
+- Set up auto-scaling
+- Implement resource limits
+- Add capacity planning alarms
+
+### Pattern 3: Dependency Failure
+
+**Symptoms**:
+- Errors calling external service
+- Traces show failures in downstream calls
+- Service map shows unhealthy dependency
+
+**Investigation**:
+```
+# Find dependency errors
+fields @timestamp, @message
+| filter @message like /dependency/
+| parse @message '"service":"*"' as failedService
+| parse @message '"statusCode":*' as statusCode
+| stats count(*) as errorCount by failedService, statusCode
+| sort errorCount desc
+| limit 20
+```
+
+**Mitigation**: 
+- Implement circuit breaker
+- Add fallback behavior
+- Route around failed dependency
+
+**Prevention**:
+- Add dependency health checks
+- Implement retry logic with backoff
+- Set up dependency SLOs
+
+### Pattern 4: Database Performance
+
+**Symptoms**:
+- Slow query performance
+- Database connection pool exhaustion
+- High database CPU utilization
+
+**Investigation**:
+```
+# Find slow database queries
+fields @timestamp, @message
+| parse @message '"sql":"*"' as sqlQuery
+| parse @message '"duration":*' as duration
+| filter duration > 1000
+| stats count(*) as queryCount, avg(duration) as avgDuration by sqlQuery
+| sort avgDuration desc
+| limit 20
+```
+
+**Mitigation**:
+- Add database indexes
+- Optimize queries
+- Scale database resources
+- Implement query caching
+
+**Prevention**:
+- Regular query performance reviews
+- Database monitoring and alerting
+- Connection pool tuning
+
+### Pattern 5: Traffic Spike
+
+**Symptoms**:
+- Sudden increase in request volume
+- Rate limiting errors
+- Resource exhaustion
+
+**Investigation**:
+- Check CloudWatch Metrics for request rates
+- Query logs for request patterns
+- Review Application Signals for traffic sources
+
+**Mitigation**:
+- Enable auto-scaling
+- Implement rate limiting
+- Add caching layer
+- Scale resources manually
+
+**Prevention**:
+- Capacity planning
+- Load testing
+- Auto-scaling configuration
+- DDoS protection
+
+## Integration with All Observability Tools
+
+### Complete Investigation Workflow
+
+```
+1. Detection (CloudWatch Alarms)
+   ↓
+2. Service Health (Application Signals)
+   ↓
+3. Error Analysis (CloudWatch Logs Insights)
+   ↓
+4. Trace Analysis (Application Signals Traces)
+   ↓
+5. Metric Correlation (CloudWatch Metrics)
+   ↓
+6. Change Detection (CloudTrail)
+   ↓
+7. Documentation (AWS Documentation)
+```
+
+### Example: Complete Incident Investigation
+
+**Scenario**: API returning 500 errors
+
+**Step 1: Check Alarms**
+```
+Query: get_active_alarms(state_value="ALARM")
+Result: "api-error-rate" alarm in ALARM state
+```
+
+**Step 2: Check Application Signals**
+```
+Query: list_services(sort_by="error_rate")
+Result: "api-service" has 15% error rate (normal: 0.1%)
+```
+
+**Step 3: Query Logs**
+```
+fields @timestamp, @message, errorType, requestId, traceId
+| filter level = "ERROR"
+| sort @timestamp desc
+| limit 100
+```
+
+**Step 4: Analyze Traces**
+```
+Query: search_traces(service="api-service", error=true)
+Result: Traces show timeout calling database
+```
+
+**Step 5: Check Metrics**
+```
+Query: get_metric_data(
+  namespace="AWS/RDS",
+  metric_name="CPUUtilization",
+  dimensions=[{name: "DBInstanceIdentifier", value: "prod-db"}]
+)
+Result: Database CPU at 95%
+```
+
+**Step 6: Check CloudTrail**
+```
+Query: lookup_events(
+  event_source="rds.amazonaws.com",
+  start_time="1 hour ago"
+)
+Result: No recent database changes
+```
+
+**Step 7: Check Logs for Query Patterns**
+```
+# Analyze slow query patterns
+fields @timestamp, @message
+| parse @message '"sql":"*"' as sqlQuery
+| parse @message '"duration":*' as duration
+| filter ispresent(duration)
+| stats count(*) as queryCount, avg(duration) as avgDuration by sqlQuery
+| sort queryCount desc
+| limit 10
+```
+
+**Step 8: Root Cause**
+```
+Finding: New feature deployed 1 hour ago
+Issue: N+1 query problem causing excessive database load
+Evidence: 10,000+ queries for single API request
+```
+
+**Step 9: Mitigation**
+```
+Action: Rollback deployment
+Verification: Error rate returns to normal
+Follow-up: Fix N+1 query, add database query monitoring
+```
+
+## Quick Reference
+
+### Incident Checklist
+
+- [ ] Check active alarms
+- [ ] Review Application Signals service health
+- [ ] Query logs for errors
+- [ ] Analyze traces for failures
+- [ ] Check metrics for anomalies
+- [ ] Review CloudTrail for changes
+- [ ] Document timeline
+- [ ] Implement mitigation
+- [ ] Verify recovery
+- [ ] Conduct root cause analysis
+- [ ] Write postmortem
+- [ ] Implement preventive measures
+
+### Key Logs Insights Queries
+
+**Error Rate Over Time**:
+```
+fields @timestamp, level
+| stats count(*) as total, sum(level = "ERROR") as errors by bin(1m)
+| sort @timestamp asc
+| limit 60
+```
+
+**Top Error Types**:
+```
+fields @timestamp, @logStream, errorType
+| filter level = "ERROR"
+| stats count(*) as errorCount by errorType
+| sort errorCount desc
+| limit 20
+```
+
+---
+
+**Remember**: Effective incident response requires quick detection, thorough investigation, decisive mitigation, and comprehensive follow-up. Use all available observability tools to build a complete picture of the incident.
