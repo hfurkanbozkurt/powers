@@ -154,12 +154,62 @@ The comprehensive AWS observability platform combining monitoring, troubleshooti
 
 ## Available Steering Files
 
-1. **`incident-response.md`** - Troubleshooting and incident management workflows
-2. **`log-analysis.md`** - Log querying and analysis patterns
-3. **`alerting-setup.md`** - Creating intelligent alarms and notifications
-4. **`performance-monitoring.md`** - Application Signals APM and performance tracking
-5. **`security-auditing.md`** - CloudTrail security analysis and compliance
-6. **`application-signals-setup.md`** - Step-by-step Application Signals enablement
+### 1. `incident-response.md`
+**Troubleshooting and incident management workflows**
+
+Load this when the user needs to:
+- Respond to production incidents
+- Troubleshoot application errors or performance issues
+- Investigate service outages
+- Perform root cause analysis
+- Create incident reports and postmortems
+
+### 2. `log-analysis.md`
+**Log querying and analysis patterns**
+
+Load this when the user needs to:
+- Query logs using CloudWatch Logs Insights
+- Search and filter log events
+- Extract structured data from JSON logs
+- Aggregate log data with statistics
+- Troubleshoot application issues using logs
+
+### 3. `alerting-setup.md`
+**Creating intelligent alarms and notifications**
+
+Load this when the user needs to:
+- Set up new CloudWatch alarms
+- Improve existing alarm configurations
+- Reduce alarm fatigue and false positives
+- Create intelligent alerting strategies
+- Implement SLO-based alerting
+
+### 4. `performance-monitoring.md`
+**Application Signals APM and performance tracking**
+
+Load this when the user needs to:
+- Monitor microservices health and performance
+- Analyze distributed traces
+- Set up Service Level Objectives (SLOs)
+- Troubleshoot performance issues
+- Understand service dependencies
+- Track error rates and latency
+
+### 5. `security-auditing.md`
+**CloudTrail security analysis and compliance**
+
+Load this when the user needs to:
+- Investigate security incidents
+- Track API activity and resource changes
+- Perform compliance audits
+- Monitor IAM changes
+- Detect unauthorized access attempts
+- Generate audit reports
+
+### 6. `application-signals-setup.md`
+**Step-by-step Application Signals enablement**
+
+This steering file provides comprehensive guidance for setting up AWS Application Signals using the power's enablement guide feature. Always start by getting the official enablement guide from AWS using the `get_enablement_guide` tool.
 
 ## Quick Start Examples
 

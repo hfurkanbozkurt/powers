@@ -3,14 +3,6 @@
 ## Purpose
 This steering file provides comprehensive guidance for responding to incidents and troubleshooting issues using the full AWS observability stack.
 
-## When to Load This Steering
-Load this when the user needs to:
-- Respond to production incidents
-- Troubleshoot application errors or performance issues
-- Investigate service outages
-- Perform root cause analysis
-- Create incident reports and postmortems
-
 ## Incident Response Framework
 
 ### Phase 1: Detection and Triage

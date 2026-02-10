@@ -3,14 +3,6 @@
 ## Purpose
 This steering file provides guidance for using CloudWatch Logs Insights QL syntax for log analysis, troubleshooting, and data extraction via the CloudWatch MCP server.
 
-## When to Load This Steering
-Load this when the user needs to:
-- Query logs using CloudWatch Logs Insights
-- Search and filter log events
-- Extract structured data from JSON logs
-- Aggregate log data with statistics
-- Troubleshoot application issues using logs
-
 ## MCP Server Tools
 
 ### Primary Tools

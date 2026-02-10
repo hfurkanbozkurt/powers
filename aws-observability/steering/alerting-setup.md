@@ -3,14 +3,6 @@
 ## Purpose
 This steering file provides guidance for setting up effective CloudWatch alarms using recommended configurations and best practices.
 
-## When to Load This Steering
-Load this when the user needs to:
-- Set up new CloudWatch alarms
-- Improve existing alarm configurations
-- Reduce alarm fatigue and false positives
-- Create intelligent alerting strategies
-- Implement SLO-based alerting
-
 ## Core Concepts
 
 ### Alarm States

@@ -3,15 +3,6 @@
 ## Purpose
 This steering file provides guidance for using AWS CloudWatch Application Signals to monitor application performance, health, and dependencies.
 
-## When to Load This Steering
-Load this when the user needs to:
-- Monitor microservices health and performance
-- Analyze distributed traces
-- Set up Service Level Objectives (SLOs)
-- Troubleshoot performance issues
-- Understand service dependencies
-- Track error rates and latency
-
 ## Application Signals Overview
 
 Application Signals provides automatic instrumentation for application performance monitoring with:

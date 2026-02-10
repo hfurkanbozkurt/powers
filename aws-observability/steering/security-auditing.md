@@ -3,15 +3,6 @@
 ## Purpose
 This steering file provides guidance for using AWS CloudTrail to perform security auditing, compliance monitoring, and governance analysis.
 
-## When to Load This Steering
-Load this when the user needs to:
-- Investigate security incidents
-- Track API activity and resource changes
-- Perform compliance audits
-- Monitor IAM changes
-- Detect unauthorized access attempts
-- Generate audit reports
-
 ## CloudTrail Overview
 
 CloudTrail provides governance, compliance, and audit capabilities by logging all API calls in your AWS account:
