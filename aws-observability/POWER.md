@@ -1,8 +1,8 @@
 ---
 name: "aws-observability"
 displayName: "AWS Observability"
-description: "Comprehensive AWS observability platform combining CloudWatch Logs, Metrics, Alarms, Application Signals (APM), CloudTrail security auditing, for complete monitoring, troubleshooting, and optimization."
-keywords: ["cloudwatch", "observability", "monitoring", "logs", "metrics", "traces", "alarms", "cloudtrail", "application-signals", "log-insights", "security", "audit", "performance", "apm", "distributed-tracing"]
+description: "Comprehensive AWS observability platform combining CloudWatch Logs, Metrics, Alarms, Application Signals (APM), CloudTrail security auditing, and automated codebase observability gap analysis, for complete monitoring, troubleshooting, and optimization."
+keywords: ["cloudwatch", "observability", "monitoring", "logs", "metrics", "traces", "alarms", "cloudtrail", "application-signals", "log-insights", "security", "audit", "performance", "apm", "distributed-tracing", "codebase-analysis", "instrumentation", "code-quality"]
 author: "AWS"
 ---
 
@@ -50,6 +50,7 @@ The comprehensive AWS observability platform combining monitoring, troubleshooti
 - **CloudWatch Logs** - Query and analyze logs using CloudWatch Logs Insights
 - **Metrics & Alarms** - Metric querying with Metrics Insights and intelligent alarm recommendations
 - **Application Signals** - APM with distributed tracing, service maps, SLOs, and enablement guides
+- **Codebase Observability Analysis** - Automated analysis of codebases to identify observability gaps and provide actionable recommendations
 - **CloudTrail Integration** - Security auditing and compliance tracking
 - **AWS Documentation** - Direct access to official AWS docs for troubleshooting
 
@@ -136,7 +137,29 @@ The comprehensive AWS observability platform combining monitoring, troubleshooti
 - Understanding who did what and when
 - Detecting unauthorized access attempts
 
-### 5. AWS Documentation Access
+### 5. Codebase Observability Gap Analysis
+	 
+**Primary Use Case**: Automated analysis of application codebases to identify observability gaps
+
+**Key Features**:
+- Multi-language support (Python, Java, JavaScript/TypeScript, Go, Ruby, C#/.NET)
+- Logging pattern analysis and gap identification
+- Metrics instrumentation assessment
+- Distributed tracing coverage evaluation
+- Error handling review
+- Health check and readiness probe validation
+- Actionable recommendations with code examples
+- Prioritized gap reports by severity
+
+**When to Use**:
+- Auditing existing applications for observability best practices
+- Onboarding new services to observability standards
+- Improving debugging and troubleshooting capabilities
+- Preparing for production deployments
+- Establishing observability baselines
+- Training teams on observability patterns
+
+### 6. AWS Documentation Access
 
 **Primary Use Case**: Quick access to official AWS documentation
 
@@ -206,7 +229,18 @@ Load this when the user needs to:
 - Detect unauthorized access attempts
 - Generate audit reports
 
-### 6. `application-signals-setup.md`
+### 6. `observability-gap-analysis.md`
+**Codebase observability analysis and recommendations**
+
+Load this when the user needs to:
+- Audit a codebase for observability best practices
+- Identify missing instrumentation points
+- Analyze logging patterns and gaps
+- Review metrics collection coverage
+- Assess distributed tracing implementation
+- Get recommendations for observability improvements
+
+### 7. `application-signals-setup.md`
 **Step-by-step Application Signals enablement**
 
 This steering file provides comprehensive guidance for setting up AWS Application Signals using the power's enablement guide feature. Always start by getting the official enablement guide from AWS using the `get_enablement_guide` tool.
