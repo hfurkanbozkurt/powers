@@ -403,7 +403,7 @@ fields @timestamp, endpoint, duration
    - Latency increase?
    - Traffic surge?
 4. Check for correlated events:
-   - Deployments (CloudTrail)
+   - Deployments (CloudTrail - use data source priority)
    - Infrastructure changes
    - Dependency failures
 5. Review traces from breach period
@@ -426,7 +426,12 @@ fields @timestamp, @message, requestId, traceId, duration, level
 ### CloudTrail
 Check for recent changes that might affect performance:
 ```
-Query CloudTrail for:
+Follow CloudTrail data source priority (see cloudtrail-data-source-selection.md):
+1. Check CloudTrail Lake event data stores (preferred)
+2. Check CloudWatch Logs for CloudTrail integration
+3. Use CloudTrail Lookup Events API (fallback)
+
+Query for:
 - Recent deployments
 - Configuration changes
 - IAM policy updates

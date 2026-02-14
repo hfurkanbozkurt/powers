@@ -435,7 +435,7 @@ Actions:
 2. On-call checks alarm details
 3. Query CloudWatch Logs for errors
 4. Analyze Application Signals traces
-5. Check CloudTrail for recent changes
+5. Check CloudTrail for recent changes (use data source priority)
 6. Implement mitigation
 7. Update alarm if needed
 ```

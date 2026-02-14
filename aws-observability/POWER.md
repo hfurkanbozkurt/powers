@@ -13,10 +13,10 @@ author: "AWS"
 1. **AWS CLI configured** with credentials (`aws configure` or `~/.aws/credentials`)
 2. **Python 3.10+** and `uv` installed ([Install uv](https://docs.astral.sh/uv/getting-started/installation/))
 3. **Required AWS Permissions**: Your IAM user/role needs:
-   - `logs:*` for CloudWatch Logs operations
    - `cloudwatch:*` for CloudWatch Metrics, Alarms, and Application Signals
+   - `logs:*` for CloudWatch Logs operations (includes CloudTrail log querying)
    - `xray:*` for distributed tracing
-   - `cloudtrail:LookupEvents` for CloudTrail queries
+   - `cloudtrail:*` for CloudTrail queries
 
 ## Configuration
 
@@ -123,12 +123,20 @@ The comprehensive AWS observability platform combining monitoring, troubleshooti
 
 **Primary Use Case**: Security auditing, compliance, and governance
 
+**Data Source Priority**: CloudTrail data is accessed through multiple sources in priority order:
+1. **CloudTrail Lake** (Priority 1) - SQL-based querying with 7-year retention
+2. **CloudWatch Logs** (Priority 2) - Real-time analysis with CloudWatch integration
+3. **Lookup Events API** (Priority 3) - Fallback for basic queries (90-day limit)
+
+See `cloudtrail-data-source-selection.md` steering file for detailed decision tree.
+
 **Key Features**:
 - API call history and analysis
 - User activity tracking across AWS accounts
 - Resource change tracking and audit trails
 - IAM permission change monitoring
 - Compliance reporting and security investigations
+- Multiple data source options for flexibility
 
 **When to Use**:
 - Investigating security incidents
@@ -136,9 +144,46 @@ The comprehensive AWS observability platform combining monitoring, troubleshooti
 - Compliance auditing and reporting
 - Understanding who did what and when
 - Detecting unauthorized access attempts
+- Root cause analysis for configuration changes
 
-### 5. Codebase Observability Gap Analysis
-	 
+### 5. Cost Explorer
+
+**Primary Use Case**: AWS cost analysis, forecasting, and optimization
+
+**Key Features**:
+- Cost and usage data retrieval with flexible grouping
+- Cost forecasting based on historical patterns
+- Cost comparison between time periods
+- Cost driver analysis to identify spending changes
+- Support for filtering by service, region, tags, and more
+- Dimension and tag value discovery
+
+**When to Use**:
+- Analyzing AWS spending patterns
+- Forecasting future costs
+- Identifying cost optimization opportunities
+- Comparing costs across time periods
+- Understanding what's driving cost changes
+- Budget planning and cost allocation
+
+### 6. AWS Documentation Access
+
+**Primary Use Case**: Quick access to official AWS documentation
+
+**Key Features**:
+- Search AWS documentation directly
+- Read documentation pages in markdown format
+- Get content recommendations for related topics
+- Access service-specific guides and API references
+
+**When to Use**:
+- Looking up AWS service documentation
+- Understanding API parameters and behavior
+- Finding best practices and tutorials
+- Troubleshooting with official guidance
+
+### 7. Codebase Observability Analysis
+
 **Primary Use Case**: Automated analysis of application codebases to identify observability gaps
 
 **Key Features**:
@@ -158,22 +203,6 @@ The comprehensive AWS observability platform combining monitoring, troubleshooti
 - Preparing for production deployments
 - Establishing observability baselines
 - Training teams on observability patterns
-
-### 6. AWS Documentation Access
-
-**Primary Use Case**: Quick access to official AWS documentation
-
-**Key Features**:
-- Search AWS documentation directly
-- Read documentation pages in markdown format
-- Get content recommendations for related topics
-- Access service-specific guides and API references
-
-**When to Use**:
-- Looking up AWS service documentation
-- Understanding API parameters and behavior
-- Finding best practices and tutorials
-- Troubleshooting with official guidance
 
 ## Available Steering Files
 
@@ -245,6 +274,16 @@ Load this when the user needs to:
 
 This steering file provides comprehensive guidance for setting up AWS Application Signals using the power's enablement guide feature. Always start by getting the official enablement guide from AWS using the `get_enablement_guide` tool.
 
+### 8. `cloudtrail-data-source-selection.md`
+**CloudTrail data source priority and selection strategy**
+
+Load this when the user needs to:
+- Query CloudTrail audit data and determine the best data source
+- Understand the priority order for CloudTrail data access (Lake → CloudWatch Logs → Lookup Events API)
+- Translate queries across different CloudTrail data sources
+- Optimize CloudTrail query performance and cost
+- Migrate from Lookup Events API to CloudTrail Lake or CloudWatch Logs integration
+
 ## Quick Start Examples
 
 ### Example 1: Investigate High Error Rate
@@ -307,6 +346,35 @@ This steering file provides comprehensive guidance for setting up AWS Applicatio
 
 4. Document findings
    - Access AWS documentation for security best practices
+```
+
+### Example 4: Codebase Observability Gap Audit
+
+```
+1. Analyze codebase structure
+   - Identify entry points (API handlers, Lambda functions)
+   - Map critical business operations
+   - Review error handling patterns
+
+2. Assess logging coverage
+   - Check for structured logging implementation
+   - Identify missing correlation IDs
+   - Find silent failures and empty catch blocks
+
+3. Evaluate metrics instrumentation
+   - Review custom CloudWatch metrics
+   - Check business metric coverage
+   - Assess performance metric collection
+
+4. Review distributed tracing
+   - Verify X-Ray SDK integration
+   - Check trace context propagation
+   - Evaluate subsegment coverage
+
+5. Generate actionable report
+   - Prioritize gaps by severity
+   - Provide code examples for fixes
+   - Estimate implementation effort
 ```
 
 ## Log Query Patterns
@@ -452,9 +520,11 @@ fields @timestamp, @message, @logStream
 
 ### CloudTrail
 1. Enable CloudTrail in all regions
-2. Integrate with CloudWatch Logs for real-time analysis
-3. Set up alerts for critical security events
-4. Regular audit log reviews
+2. **Consider CloudTrail Lake** for long-term retention and SQL-based analysis
+3. Integrate with CloudWatch Logs for real-time analysis and alerting
+4. Set up alerts for critical security events
+5. Regular audit log reviews
+6. Use the data source priority approach for efficient querying
 
 ## Integration Patterns
 
@@ -476,7 +546,39 @@ fields @timestamp, @message, errorType, requestId
 | sort @timestamp desc
 | limit 50
 ```
-Then cross-reference timestamps with CloudTrail events using the `lookup_events` tool to identify configuration changes that may have caused errors.
+Then cross-reference timestamps with CloudTrail events using the data source priority:
+1. Query CloudTrail Lake event data store (if available)
+2. Query CloudWatch Logs for CloudTrail events (if integrated)
+3. Use `lookup_events` API (fallback)
+
+This helps identify configuration changes that may have caused errors.
+
+### Metrics + Cost
+Use CloudWatch Metrics to identify high-utilization resources, then analyze their costs in Cost Explorer to find optimization opportunities.
+
+## Troubleshooting
+
+### Common Issues
+
+1. **"Insufficient permissions" errors**
+   - Verify IAM policies include all required actions
+   - Check resource-based policies on log groups
+   - Ensure Cost Explorer is enabled in your account
+
+2. **"Query timeout" errors**
+   - Reduce time range in queries
+   - Use more specific filters
+   - Query fewer log groups at once
+
+3. **"No results found"**
+   - Verify log group names and ARNs are correct
+   - Check time range matches your data
+   - Ensure field names are case-sensitive correct
+
+4. **MCP server connection issues**
+   - Verify uvx is installed: `pip install uv`
+   - Check AWS credentials: `aws sts get-caller-identity`
+   - Review MCP server logs (set FASTMCP_LOG_LEVEL=DEBUG)
 
 ## Available MCP Servers
 

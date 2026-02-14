@@ -66,6 +66,10 @@ This steering file provides comprehensive guidance for responding to incidents a
    - Check for resource exhaustion (CPU, memory, connections)
 
 4. **CloudTrail Events**
+   - **Follow CloudTrail data source priority** (see `cloudtrail-data-source-selection.md`):
+     - Priority 1: Check CloudTrail Lake event data stores
+     - Priority 2: Check CloudWatch Logs for CloudTrail integration
+     - Priority 3: Use CloudTrail Lookup Events API
    - Query for recent configuration changes
    - Check for deployments or infrastructure modifications
    - Identify who made changes and when
@@ -77,7 +81,7 @@ This steering file provides comprehensive guidance for responding to incidents a
 2. Query logs for errors starting at that time
 3. Extract trace IDs from error logs
 4. Analyze traces for failure points
-5. Check CloudTrail for changes before incident
+5. Check CloudTrail for changes before incident (use priority order)
 6. Correlate metrics with error patterns
 ```
 
@@ -91,7 +95,7 @@ This steering file provides comprehensive guidance for responding to incidents a
 **Common Mitigation Strategies**:
 
 1. **Rollback Deployment**
-   - Check CloudTrail for recent deployments
+   - Check CloudTrail for recent deployments (use data source priority)
    - Identify deployment time vs incident start
    - Rollback to previous stable version
    - Verify service recovery
@@ -192,6 +196,7 @@ This steering file provides comprehensive guidance for responding to incidents a
    - Metric graphs showing anomalies
    - Trace examples demonstrating failures
    - CloudTrail events showing changes
+   - Cost data showing resource usage
 
 ### Phase 6: Postmortem and Prevention
 
@@ -310,6 +315,7 @@ fields @timestamp, @message, errorType
 - Check CloudWatch Metrics for resource utilization
 - Query logs for timeout errors
 - Review Application Signals for latency increases
+- Check Cost Explorer for usage spikes
 
 **Mitigation**: Scale resources, optimize code
 
@@ -388,6 +394,7 @@ fields @timestamp, @message
 - Check CloudWatch Metrics for request rates
 - Query logs for request patterns
 - Review Application Signals for traffic sources
+- Check Cost Explorer for usage spikes
 
 **Mitigation**:
 - Enable auto-scaling
@@ -418,7 +425,9 @@ fields @timestamp, @message
    ↓
 6. Change Detection (CloudTrail)
    ↓
-7. Documentation (AWS Documentation)
+7. Cost Impact (Cost Explorer)
+   ↓
+8. Documentation (AWS Documentation)
 ```
 
 ### Example: Complete Incident Investigation
@@ -461,12 +470,19 @@ Query: get_metric_data(
 Result: Database CPU at 95%
 ```
 
-**Step 6: Check CloudTrail**
+**Step 6: Check CloudTrail for Changes**
 ```
-Query: lookup_events(
-  event_source="rds.amazonaws.com",
-  start_time="1 hour ago"
-)
+# Follow CloudTrail data source priority:
+# 1. Check CloudTrail Lake (if available)
+# 2. Check CloudWatch Logs (if CloudTrail integrated)
+# 3. Use Lookup Events API (fallback)
+
+# Example using CloudWatch Logs (Priority 2):
+fields eventTime, eventName, userIdentity.userName, requestParameters
+| filter eventSource = "rds.amazonaws.com"
+| sort eventTime desc
+| limit 50
+
 Result: No recent database changes
 ```
 
@@ -506,6 +522,7 @@ Follow-up: Fix N+1 query, add database query monitoring
 - [ ] Analyze traces for failures
 - [ ] Check metrics for anomalies
 - [ ] Review CloudTrail for changes
+- [ ] Assess cost impact
 - [ ] Document timeline
 - [ ] Implement mitigation
 - [ ] Verify recovery
