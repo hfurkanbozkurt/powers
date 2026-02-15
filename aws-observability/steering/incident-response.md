@@ -442,8 +442,10 @@ Result: "api-error-rate" alarm in ALARM state
 
 **Step 2: Check Application Signals**
 ```
-Query: list_services(sort_by="error_rate")
-Result: "api-service" has 15% error rate (normal: 0.1%)
+Query: audit_services(
+  service_targets='[{"Type":"service","Data":{"Service":{"Type":"Service","Name":"*"}}}]'
+)
+Result: "api-service" flagged with 15% error rate (normal: 0.1%)
 ```
 
 **Step 3: Query Logs**
@@ -456,7 +458,11 @@ fields @timestamp, @message, errorType, requestId, traceId
 
 **Step 4: Analyze Traces**
 ```
-Query: search_traces(service="api-service", error=true)
+Query: search_transaction_spans(
+  query_string='FILTER attributes.aws.local.service = "api-service"
+    and attributes.http.status_code >= 500
+    | LIMIT 20'
+)
 Result: Traces show timeout calling database
 ```
 

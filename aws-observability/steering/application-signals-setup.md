@@ -7,7 +7,11 @@ This steering file provides comprehensive guidance for setting up AWS Applicatio
 **First Step**: Always start by getting the official enablement guide from AWS:
 
 ```
-Use the aws-application-signals MCP server's get_enablement_guide tool to retrieve the latest setup instructions and requirements.
+Use the awslabs.cloudwatch-applicationsignals-mcp-server's get_enablement_guide tool with the following required parameters:
+  - service_platform (required): "ec2", "ecs", "lambda", or "eks"
+  - service_language (required): "python", "nodejs", "java", or "dotnet"
+  - iac_directory (required): Absolute path to your Infrastructure as Code directory
+  - app_directory (required): Absolute path to your application code directory
 ```
 
 This tool provides:

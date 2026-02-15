@@ -116,96 +116,224 @@ Latency SLO Example:
 
 ## Application Signals MCP Server Tools
 
-### Available Tools
+### Primary Audit Tools (Recommended Entry Points)
 
-1. **list_services**: Get all monitored services
-2. **get_service_metrics**: Retrieve metrics for a specific service
-3. **get_service_operations**: List operations within a service
-4. **get_operation_metrics**: Get metrics for specific operation
-5. **list_slos**: View configured SLOs
-6. **get_slo_status**: Check SLO compliance
-7. **search_traces**: Find traces matching criteria
-8. **get_trace_details**: View complete trace information
-9. **get_service_map**: Visualize service dependencies
+1. **audit_services** ⭐: Comprehensive service health auditing with wildcard support
+2. **audit_slos** ⭐: SLO compliance monitoring and breach analysis
+3. **audit_service_operations** ⭐: Operation-specific performance analysis (GET, POST, etc.)
+
+### Service Discovery Tools
+
+4. **list_monitored_services**: Get all monitored services
+5. **get_service_detail**: Get metadata and configuration for a specific service
+6. **list_service_operations**: List recently invoked operations within a service (max 24h lookback)
+
+### SLO Management Tools
+
+7. **list_slos**: View configured SLOs
+8. **get_slo**: Get detailed SLO configuration
+9. **list_slis**: Legacy SLI status report with breach summary
+
+### Metrics Tools
+
+10. **query_service_metrics**: Retrieve metrics for a specific service (Latency, Error, Fault)
+
+### Trace & Log Analysis Tools
+
+11. **search_transaction_spans**: Query OpenTelemetry spans (100% sampled) via CloudWatch Logs Insights
+12. **query_sampled_traces**: Query X-Ray traces (5% sampled) with filter expressions
+
+### Canary, Change Events & Enablement Tools
+
+13. **analyze_canary_failures**: Root cause investigation for CloudWatch Synthetics canaries
+14. **list_change_events**: Query change events (deployments, config changes) to correlate with performance issues. Supports `comprehensive_history=True` (ListEntityEvents API, requires `service_key_attributes`) for full change history, or `comprehensive_history=False` (ListServiceStates API) for current service state.
+15. **get_enablement_guide**: Step-by-step Application Signals setup instructions
+
+### Target Format Reference
+
+Audit tools require JSON target arrays. Examples:
+
+**All services:**
+```json
+[{"Type":"service","Data":{"Service":{"Type":"Service","Name":"*"}}}]
+```
+
+**Wildcard pattern (e.g., payment services):**
+```json
+[{"Type":"service","Data":{"Service":{"Type":"Service","Name":"*payment*"}}}]
+```
+
+**Specific service:**
+```json
+[{"Type":"service","Data":{"Service":{"Type":"Service","Name":"checkout-service","Environment":"eks:prod-cluster"}}}]
+```
+
+**All SLOs:**
+```json
+[{"Type":"slo","Data":{"Slo":{"SloName":"*"}}}]
+```
+
+**Operation targets (e.g., GET operations, Latency):**
+```json
+[{"Type":"service_operation","Data":{"ServiceOperation":{"Service":{"Type":"Service","Name":"*payment*"},"Operation":"*GET*","MetricType":"Latency"}}}]
+```
+
+MetricType options: `Latency`, `Availability`, `Fault`, `Error`
+
+### Auditor Selection Guide
+
+| Scenario | Auditors |
+|----------|----------|
+| Quick health check | Default (omit parameter) |
+| Root cause analysis | `all` |
+| SLO breach investigation | `all` |
+| Error investigation | `log,trace` |
+| Dependency issues | `dependency_metric,trace` |
+| Find outlier hosts | `top_contributor,operation_metric` |
+| Quota monitoring | `service_quota,operation_metric` |
+
+The 7 auditor types: `slo`, `operation_metric`, `trace`, `log`, `dependency_metric`, `top_contributor`, `service_quota`
+
+### Transaction Search Query Patterns
+
+Use with `search_transaction_spans` (100% sampled, queries `aws/spans` log group):
+
+**Error analysis:**
+```
+FILTER attributes.aws.local.service = "service-name"
+  and attributes.http.status_code >= 400
+| STATS count() as error_count by attributes.aws.local.operation
+| SORT error_count DESC
+| LIMIT 20
+```
+
+**Latency analysis:**
+```
+FILTER attributes.aws.local.service = "service-name"
+| STATS avg(duration) as avg_latency,
+        pct(duration, 99) as p99_latency
+  by attributes.aws.local.operation
+| SORT p99_latency DESC
+| LIMIT 20
+```
+
+**Dependency calls:**
+```
+FILTER attributes.aws.local.service = "service-name"
+| STATS count() as call_count, avg(duration) as avg_latency
+  by attributes.aws.remote.service, attributes.aws.remote.operation
+| SORT call_count DESC
+| LIMIT 20
+```
+
+**GenAI token usage:**
+```
+FILTER attributes.aws.local.service = "service-name"
+  and attributes.aws.remote.operation = "InvokeModel"
+| STATS sum(attributes.gen_ai.usage.output_tokens) as total_tokens
+  by attributes.gen_ai.request.model, bin(1h)
+```
+
+### X-Ray Filter Expressions
+
+Use with `query_sampled_traces` (5% sampled):
+
+```
+# Faults for a service
+service("service-name"){fault = true}
+
+# Slow requests
+service("service-name") AND duration > 5
+
+# Specific operation
+annotation[aws.local.operation]="GET /api/orders"
+
+# HTTP errors
+http.status = 500
+
+# Combined
+service("api"){fault = true} AND annotation[aws.local.operation]="POST /checkout"
+```
+
+### Pagination (`next_token`) Guidance
+
+Wildcard patterns process services/SLOs in batches (default: 5 per call):
+1. First call returns findings + `next_token` if more results exist
+2. Continue with same parameters + `next_token` to process remaining
+3. Repeat until no `next_token` is returned
 
 ### Tool Usage Patterns
 
 #### Pattern 1: Service Health Check
 ```
-1. list_services
-   - Time range: Last 1 hour
-   - Sort by: Error rate (descending)
+1. Audit all services:
+   audit_services(
+     service_targets='[{"Type":"service","Data":{"Service":{"Type":"Service","Name":"*"}}}]'
+   )
 
-2. For services with high error rates:
-   get_service_metrics
-   - Metrics: ErrorRate, RequestCount, Latency
-   - Time range: Last 24 hours
-   - Statistics: Average, Sum, Maximum, P99
+2. For services with issues, deep dive:
+   audit_services(
+     service_targets='[{"Type":"service","Data":{"Service":{"Type":"Service","Name":"problem-service"}}}]',
+     auditors="all"
+   )
 
-3. Identify affected operations:
-   get_service_operations
-   - Service: [service-name]
-   - Sort by: Error rate
+3. Review findings and follow recommendations
 ```
 
 #### Pattern 2: Latency Investigation
 ```
-1. Identify slow service:
-   list_services
-   - Sort by: P99 latency
+1. Audit operations for latency:
+   audit_service_operations(
+     operation_targets='[{"Type":"service_operation","Data":{"ServiceOperation":{"Service":{"Type":"Service","Name":"service-name"},"Operation":"*","MetricType":"Latency"}}}]'
+   )
 
 2. Get detailed metrics:
-   get_service_metrics
-   - Service: [service-name]
-   - Metrics: Latency
-   - Statistics: P50, P90, P95, P99
-   - Compare: Current hour vs previous hour
+   query_service_metrics(
+     service_name="service-name",
+     metric_name="Latency",
+     statistic="Average",
+     extended_statistic="p99"
+   )
 
-3. Find slow traces:
-   search_traces
-   - Service: [service-name]
-   - Latency threshold: > P95
-   - Limit: 20
-
-4. Analyze trace details:
-   get_trace_details
-   - Trace IDs: [from step 3]
-   - Look for: Slow spans, external calls, database queries
+3. Search 100% sampled traces for slow requests:
+   search_transaction_spans(
+     query_string='FILTER attributes.aws.local.service = "service-name"
+       | STATS avg(duration) as avg_latency, pct(duration, 99) as p99
+         by attributes.aws.local.operation
+       | SORT p99 DESC | LIMIT 20'
+   )
 ```
 
 #### Pattern 3: Dependency Analysis
 ```
-1. Get service map:
-   get_service_map
-   - Service: [service-name]
-   - Time range: Last 24 hours
+1. Audit service with dependency auditor:
+   audit_services(
+     service_targets='[{"Type":"service","Data":{"Service":{"Type":"Service","Name":"service-name"}}}]',
+     auditors="dependency_metric,trace"
+   )
 
-2. For each dependency:
-   get_service_metrics
-   - Service: [dependency-name]
-   - Check: Error rate, latency
-
-3. Identify bottlenecks:
-   - Services with high latency
-   - Services with high error rates
-   - Services with increased load
+2. For each dependency, check metrics:
+   query_service_metrics(
+     service_name="dependency-name",
+     metric_name="Latency"
+   )
 ```
 
 #### Pattern 4: SLO Monitoring
 ```
-1. List all SLOs:
-   list_slos
-   - Filter: All / At risk / Breached
+1. Audit all SLOs:
+   audit_slos(
+     slo_targets='[{"Type":"slo","Data":{"Slo":{"SloName":"*"}}}]'
+   )
 
-2. For at-risk SLOs:
-   get_slo_status
-   - SLO: [slo-name]
-   - Time range: Evaluation period
+2. For breached SLOs, get configuration:
+   get_slo(slo_id="breached-slo-name")
 
-3. Investigate root cause:
-   - If availability SLO: Check error rates
-   - If latency SLO: Analyze slow traces
-   - If custom SLO: Review specific metric
+3. Deep dive with root cause analysis:
+   audit_slos(
+     slo_targets='[{"Type":"slo","Data":{"Slo":{"SloName":"breached-slo-name"}}}]',
+     auditors="all"
+   )
 ```
 
 ## Performance Metrics Reference
@@ -560,28 +688,26 @@ Action: Log to monitoring channel
 
 ### Get Service Health
 ```
-1. list_services (sort by error_rate desc)
-2. get_service_metrics [service-name] (last 1 hour)
+1. audit_services(service_targets='[{"Type":"service","Data":{"Service":{"Type":"Service","Name":"*"}}}]')
+2. query_service_metrics(service_name="service-name", metric_name="Latency")
 ```
 
 ### Investigate Slow Request
 ```
-1. search_traces (latency > threshold)
-2. get_trace_details [trace-id]
-3. Analyze span durations
+1. search_transaction_spans(query_string='FILTER attributes.aws.local.service = "service-name" and duration > 5000 | LIMIT 20')
+2. Analyze span durations from results
 ```
 
 ### Check Dependencies
 ```
-1. get_service_map [service-name]
-2. For each dependency: get_service_metrics
+1. audit_services(service_targets='[{"Type":"service","Data":{"Service":{"Type":"Service","Name":"service-name"}}}]', auditors="dependency_metric,trace")
 ```
 
 ### Monitor SLO
 ```
-1. list_slos
-2. get_slo_status [slo-name]
-3. If at risk: investigate service metrics
+1. audit_slos(slo_targets='[{"Type":"slo","Data":{"Slo":{"SloName":"*"}}}]')
+2. get_slo(slo_id="slo-name")
+3. If breached: audit_slos(slo_targets='[{"Type":"slo","Data":{"Slo":{"SloName":"slo-name"}}}]', auditors="all")
 ```
 
 ---

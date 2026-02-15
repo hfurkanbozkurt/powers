@@ -12,11 +12,16 @@ author: "AWS"
 
 1. **AWS CLI configured** with credentials (`aws configure` or `~/.aws/credentials`)
 2. **Python 3.10+** and `uv` installed ([Install uv](https://docs.astral.sh/uv/getting-started/installation/))
-3. **Required AWS Permissions**: Your IAM user/role needs:
-   - `cloudwatch:*` for CloudWatch Metrics, Alarms, and Application Signals
+3. **Application Signals enabled** in your AWS account whenever applicable ([Getting started with Application Signals](https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/CloudWatch-Application-Monitoring-Intro.html))
+4. **Required AWS Permissions**: Your IAM user/role needs:
+   - `cloudwatch:*` for CloudWatch Metrics and Alarms
    - `logs:*` for CloudWatch Logs operations (includes CloudTrail log querying)
    - `xray:*` for distributed tracing
    - `cloudtrail:*` for CloudTrail queries
+   - `application-signals:*` for Application Signals (e.g., `ListServices`, `GetService`, `ListServiceOperations`, `ListServiceLevelObjectives`, `GetServiceLevelObjective`, `BatchGetServiceLevelObjectiveBudgetReport`, `ListAuditFindings`, `ListEntityEvents`, `ListServiceStates`)
+   - `synthetics:GetCanary`, `synthetics:GetCanaryRuns` for canary analysis
+   - `s3:GetObject`, `s3:ListBucket` for canary artifacts
+   - `iam:GetRole`, `iam:ListAttachedRolePolicies`, `iam:GetPolicy`, `iam:GetPolicyVersion` for the enablement guide
 
 ## Configuration
 
@@ -110,6 +115,9 @@ The comprehensive AWS observability platform combining monitoring, troubleshooti
 - Automatic service discovery
 - SLO compliance monitoring and error budget tracking
 - Enablement guide for setup assistance
+- Primary audit tools (`audit_services`, `audit_slos`, `audit_service_operations`) as recommended entry points for all investigation workflows, with wildcard targeting and 7 auditor types (`slo`, `operation_metric`, `trace`, `log`, `dependency_metric`, `top_contributor`, `service_quota`)
+- 100% Trace Visibility via `search_transaction_spans` querying OpenTelemetry spans through CloudWatch Logs Insights (vs X-Ray's 5% sampling)
+- Canary Failure Analysis via `analyze_canary_failures` for root cause investigation of CloudWatch Synthetics canaries
 
 **When to Use**:
 - Monitoring microservices health and performance
