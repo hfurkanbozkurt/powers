@@ -602,6 +602,9 @@ CloudTrail security auditing and API activity tracking.
 ### awslabs.aws-documentation-mcp-server
 Search and read official AWS documentation.
 
+## License
+This power integrates with CloudWatch MCP Server, CloudWatch Application Signals MCP Server, CloudTrail MCP Server, and AWS Documentation MCP Server from [AWS Labs](https://github.com/awslabs/mcp) (Apache-2.0 license). All steering files and power configuration are licensed under Apache-2.0.
+
 ---
 
 **Source:** AWS Labs
