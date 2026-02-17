@@ -588,6 +588,9 @@ Use CloudWatch Metrics to identify high-utilization resources, then analyze thei
    - Check AWS credentials: `aws sts get-caller-identity`
    - Review MCP server logs (set FASTMCP_LOG_LEVEL=DEBUG)
 
+5. **Audit log file location**
+   - The `cloudwatch-applicationsignals-mcp-server` supports an `AUDITOR_LOG_PATH` environment variable that controls where audit tools write their log files (defaults to `/tmp`)
+
 ## Available MCP Servers
 
 ### awslabs.cloudwatch-mcp-server
