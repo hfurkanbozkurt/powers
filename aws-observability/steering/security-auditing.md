@@ -10,7 +10,7 @@ This steering file provides guidance for accessing and analyzing CloudTrail audi
 ### Priority 1: CloudTrail Lake (Preferred)
 Check first for CloudTrail Lake event data stores using the CloudTrail MCP server:
 - Use `list_event_data_stores` to check for enabled event data stores
-- If available, use `query_event_data_store` for SQL-based analysis
+- If available, use `lake_query` for SQL-based analysis
 - Best for complex queries, long-term retention (7 years), and cost efficiency
 
 ### Priority 2: CloudWatch Logs (If CloudTrail Lake not available)
@@ -108,7 +108,7 @@ CloudTrail events in CloudWatch Logs contain these key fields:
 
 When CloudTrail Lake event data store is available, use SQL-based queries:
 
-**Tool**: `query_event_data_store` from CloudTrail MCP server
+**Tool**: `lake_query` from CloudTrail MCP server
 
 **Example Query:**
 ```sql

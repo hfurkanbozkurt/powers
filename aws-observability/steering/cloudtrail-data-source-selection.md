@@ -104,7 +104,7 @@ Use CloudTrail MCP server's lookup_events tool with:
    - Status = ENABLED
    - Management events enabled in AdvancedEventSelectors
 3. If found, use CloudTrail Lake for queries
-   - Use query_event_data_store for SQL-based analysis
+   - Use lake_query for SQL-based analysis
    - Leverage advanced filtering and aggregation
 ```
 
@@ -134,7 +134,7 @@ Need CloudTrail Data?
     v
 Check CloudTrail Lake (list_event_data_stores)
     |
-    +-- Event Data Store Enabled? --> YES --> Use CloudTrail Lake (query_event_data_store)
+    +-- Event Data Store Enabled? --> YES --> Use CloudTrail Lake (lake_query)
     |
     +-- NO
         |
