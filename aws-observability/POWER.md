@@ -224,6 +224,12 @@ Load this when the user needs to:
 - Perform root cause analysis
 - Create incident reports and postmortems
 
+Do NOT load this when:
+- General log querying without an active incident (use `log-analysis.md`)
+- Routine performance monitoring or SLO tracking (use `performance-monitoring.md`)
+- Standalone security audits or compliance reviews (use `security-auditing.md`)
+- Setting up or configuring alarms (use `alerting-setup.md`)
+
 ### 2. `log-analysis.md`
 **Log querying and analysis patterns**
 
@@ -234,6 +240,11 @@ Load this when the user needs to:
 - Aggregate log data with statistics
 - Troubleshoot application issues using logs
 
+Do NOT load this when:
+- Active incident response with multi-tool correlation (use `incident-response.md`)
+- CloudTrail-specific security analysis (use `security-auditing.md`)
+- Application Signals APM metrics and traces (use `performance-monitoring.md`)
+
 ### 3. `alerting-setup.md`
 **Creating intelligent alarms and notifications**
 
@@ -243,6 +254,10 @@ Load this when the user needs to:
 - Reduce alarm fatigue and false positives
 - Create intelligent alerting strategies
 - Implement SLO-based alerting
+
+Do NOT load this when:
+- Investigating or responding to active alarms (use `incident-response.md`)
+- General metric analysis without alarm creation (use `performance-monitoring.md`)
 
 ### 4. `performance-monitoring.md`
 **Application Signals APM and performance tracking**
@@ -255,6 +270,11 @@ Load this when the user needs to:
 - Understand service dependencies
 - Track error rates and latency
 
+Do NOT load this when:
+- Active incident response requiring multi-tool triage (use `incident-response.md`)
+- Log-only analysis without Application Signals (use `log-analysis.md`)
+- Setting up or configuring alarms (use `alerting-setup.md`)
+
 ### 5. `security-auditing.md`
 **CloudTrail security analysis and compliance**
 
@@ -265,6 +285,10 @@ Load this when the user needs to:
 - Monitor IAM changes
 - Detect unauthorized access attempts
 - Generate audit reports
+
+Do NOT load this when:
+- Active incident response requiring multi-tool triage (use `incident-response.md`)
+- General application log analysis (use `log-analysis.md`)
 
 ### 6. `observability-gap-analysis.md`
 **Codebase observability analysis and recommendations**
@@ -285,12 +309,7 @@ This steering file provides comprehensive guidance for setting up AWS Applicatio
 ### 8. `cloudtrail-data-source-selection.md`
 **CloudTrail data source priority and selection strategy**
 
-Load this when the user needs to:
-- Query CloudTrail audit data and determine the best data source
-- Understand the priority order for CloudTrail data access (Lake → CloudWatch Logs → Lookup Events API)
-- Translate queries across different CloudTrail data sources
-- Optimize CloudTrail query performance and cost
-- Migrate from Lookup Events API to CloudTrail Lake or CloudWatch Logs integration
+Referenced by `security-auditing.md` for CloudTrail data access priority logic. Not intended for direct loading in response to user queries.
 
 ## Quick Start Examples
 

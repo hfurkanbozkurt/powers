@@ -45,8 +45,10 @@ This steering file provides comprehensive guidance for responding to incidents a
 **Data Collection**:
 
 1. **CloudWatch Logs Insights**
+   For detailed log query patterns and syntax, see `log-analysis.md`.
+   Key query for incident context:
    ```
-   # Find all errors in the incident timeframe
+   # Quick error snapshot for incident timeframe
    fields @timestamp, @logStream, @message, level, errorType, requestId
    | filter level = "ERROR"
    | sort @timestamp asc
@@ -66,6 +68,7 @@ This steering file provides comprehensive guidance for responding to incidents a
    - Check for resource exhaustion (CPU, memory, connections)
 
 4. **CloudTrail Events**
+   For detailed CloudTrail query patterns and security analysis, see `security-auditing.md`.
    - **Follow CloudTrail data source priority** (see `cloudtrail-data-source-selection.md`):
      - Priority 1: Check CloudTrail Lake event data stores
      - Priority 2: Check CloudWatch Logs for CloudTrail integration
@@ -288,14 +291,10 @@ What went well and what could be improved
 - Traces show new error types
 
 **Investigation**:
-```
-# Find errors after deployment time
-fields @timestamp, @message, errorType
-| filter level = "ERROR"
-| stats count(*) as errorCount by errorType
-| sort errorCount desc
-| limit 20
-```
+For detailed log query patterns and syntax, see `log-analysis.md`. Key incident-specific approach:
+- Query logs for errors immediately after deployment timestamp
+- Group errors by type to identify new error patterns introduced by the deployment
+- Compare error types before and after deployment
 
 **Mitigation**: Rollback deployment
 
@@ -332,16 +331,10 @@ fields @timestamp, @message, errorType
 - Service map shows unhealthy dependency
 
 **Investigation**:
-```
-# Find dependency errors
-fields @timestamp, @message
-| filter @message like /dependency/
-| parse @message '"service":"*"' as failedService
-| parse @message '"statusCode":*' as statusCode
-| stats count(*) as errorCount by failedService, statusCode
-| sort errorCount desc
-| limit 20
-```
+For detailed log query patterns (including field parsing and aggregation), see `log-analysis.md`. Key incident-specific approach:
+- Filter logs for dependency-related errors and parse service names and status codes
+- Correlate with Application Signals service map to identify unhealthy dependencies
+- Check traces for failures in downstream calls
 
 **Mitigation**: 
 - Implement circuit breaker
@@ -361,16 +354,10 @@ fields @timestamp, @message
 - High database CPU utilization
 
 **Investigation**:
-```
-# Find slow database queries
-fields @timestamp, @message
-| parse @message '"sql":"*"' as sqlQuery
-| parse @message '"duration":*' as duration
-| filter duration > 1000
-| stats count(*) as queryCount, avg(duration) as avgDuration by sqlQuery
-| sort avgDuration desc
-| limit 20
-```
+For detailed log query patterns (including duration parsing and aggregation), see `log-analysis.md`. Key incident-specific approach:
+- Parse SQL queries and durations from logs, filtering for slow queries (e.g., duration > 1000ms)
+- Aggregate by query pattern to identify the most impactful slow queries
+- Correlate with database CloudWatch Metrics (CPU, connections, IOPS)
 
 **Mitigation**:
 - Add database indexes
@@ -410,6 +397,8 @@ fields @timestamp, @message
 
 ## Integration with All Observability Tools
 
+For detailed patterns on individual tools, see the specialized guides: `log-analysis.md` for log queries, `performance-monitoring.md` for Application Signals and APM, and `security-auditing.md` for CloudTrail analysis.
+
 ### Complete Investigation Workflow
 
 ```
@@ -441,6 +430,7 @@ Result: "api-error-rate" alarm in ALARM state
 ```
 
 **Step 2: Check Application Signals**
+For detailed Application Signals patterns and APM deep-dive, see `performance-monitoring.md`.
 ```
 Query: audit_services(
   service_targets='[{"Type":"service","Data":{"Service":{"Type":"Service","Name":"*"}}}]'
@@ -457,6 +447,7 @@ fields @timestamp, @message, errorType, requestId, traceId
 ```
 
 **Step 4: Analyze Traces**
+For detailed trace analysis patterns, see `performance-monitoring.md`.
 ```
 Query: search_transaction_spans(
   query_string='FILTER attributes.aws.local.service = "api-service"
@@ -478,30 +469,28 @@ Result: Database CPU at 95%
 
 **Step 6: Check CloudTrail for Changes**
 ```
-# Follow CloudTrail data source priority:
+# Follow CloudTrail data source priority (see cloudtrail-data-source-selection.md)
+# For detailed CloudTrail query patterns and security analysis, see security-auditing.md.
+#
 # 1. Check CloudTrail Lake (if available)
 # 2. Check CloudWatch Logs (if CloudTrail integrated)
 # 3. Use Lookup Events API (fallback)
-
-# Example using CloudWatch Logs (Priority 2):
-fields eventTime, eventName, userIdentity.userName, requestParameters
-| filter eventSource = "rds.amazonaws.com"
-| sort eventTime desc
-| limit 50
+#
+# Query for recent changes to the affected service (e.g., RDS):
+# - Filter by eventSource for the relevant AWS service
+# - Sort by eventTime descending to find recent changes
 
 Result: No recent database changes
 ```
 
 **Step 7: Check Logs for Query Patterns**
+For detailed log query patterns including duration parsing, see `log-analysis.md`.
 ```
-# Analyze slow query patterns
-fields @timestamp, @message
-| parse @message '"sql":"*"' as sqlQuery
-| parse @message '"duration":*' as duration
-| filter ispresent(duration)
-| stats count(*) as queryCount, avg(duration) as avgDuration by sqlQuery
-| sort queryCount desc
-| limit 10
+# Analyze slow query patterns - parse SQL and duration from logs,
+# aggregate by query to find the most frequent/slowest patterns.
+# See log-analysis.md for parse and stats syntax reference.
+
+Result: N+1 query pattern detected - 10,000+ queries for single API request
 ```
 
 **Step 8: Root Cause**
@@ -538,22 +527,10 @@ Follow-up: Fix N+1 query, add database query monitoring
 
 ### Key Logs Insights Queries
 
-**Error Rate Over Time**:
-```
-fields @timestamp, level
-| stats count(*) as total, sum(level = "ERROR") as errors by bin(1m)
-| sort @timestamp asc
-| limit 60
-```
-
-**Top Error Types**:
-```
-fields @timestamp, @logStream, errorType
-| filter level = "ERROR"
-| stats count(*) as errorCount by errorType
-| sort errorCount desc
-| limit 20
-```
+For detailed log query patterns, syntax reference, and common query templates, see `log-analysis.md`. During incidents, focus on:
+- Error rate over time (bin by 1m for incident granularity)
+- Top error types to identify the dominant failure mode
+- Request tracing using requestId or traceId from error logs
 
 ---
 
