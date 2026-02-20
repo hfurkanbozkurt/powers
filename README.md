@@ -13,6 +13,13 @@ Documentation is available at https://kiro.dev/docs/powers/
 
 ---
 
+### aws-amplify
+**Build full-stack apps with AWS Amplify** - Build and extend full-stack applications with AWS Amplify Gen 2 using type-safe TypeScript, guided workflows, and best practices. Covers authentication, data models, storage, serverless functions, AI/ML integration, and deployment to sandbox and production.
+
+**MCP Servers:** aws-mcp
+
+---
+
 ### aws-healthomics
 
 **Create and Manage Bioinformatics Workflows with AWS HealthOmics** - create, migrate, run, debug and identify optimization opportunities for bioinformatics workflows in AWS HealthOmics.
