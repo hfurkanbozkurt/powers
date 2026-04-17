@@ -1,66 +1,41 @@
 name: New Power PR Check
 
 on:
-  pull_request:
+  pull_request_target:
     types: [opened]
 
 permissions:
   pull-requests: write
-  contents: read
+
+concurrency:
+  group: new-power-check-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
 
 jobs:
   check-new-power:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Detect new power folders
-        id: detect
-        run: |
-          SKIP_DIRS=".git .github .kiro checkout"
-
-          # Get folders that exist on the base branch
-          BASE_FOLDERS=$(git ls-tree --name-only -d "origin/${{ github.event.pull_request.base.ref }}" 2>/dev/null || true)
-
-          # Get top-level folders touched in this PR
-          PR_FOLDERS=$(git diff --name-only "origin/${{ github.event.pull_request.base.ref }}...HEAD" \
-            | cut -d'/' -f1 \
-            | sort -u)
-
-          NEW_FOLDERS=""
-          for folder in $PR_FOLDERS; do
-            # Skip files (no directory in diff)
-            [ -d "$folder" ] || continue
-
-            # Skip meta directories
-            skip=false
-            for s in $SKIP_DIRS; do
-              [ "$folder" = "$s" ] && skip=true && break
-            done
-            $skip && continue
-
-            # Check if folder existed on base branch
-            if ! echo "$BASE_FOLDERS" | grep -qx "$folder"; then
-              NEW_FOLDERS="$NEW_FOLDERS $folder"
-            fi
-          done
-
-          NEW_FOLDERS=$(echo "$NEW_FOLDERS" | xargs)
-          echo "new_folders=$NEW_FOLDERS" >> "$GITHUB_OUTPUT"
-          if [ -n "$NEW_FOLDERS" ]; then
-            echo "has_new=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "has_new=false" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Comment on PR
-        if: steps.detect.outputs.has_new == 'true'
+      - name: Check for new power and comment
         uses: actions/github-script@v7
         with:
           script: |
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+            });
+
+            const newPowerDirs = new Set(
+              files
+                .filter(f => f.status === 'added' && /^[^/]+\/POWER\.md$/.test(f.filename))
+                .map(f => f.filename.split('/')[0])
+            );
+
+            if (newPowerDirs.size === 0) {
+              console.log('No new POWER.md found at a top-level folder — skipping comment.');
+              return;
+            }
+
             const user = context.payload.pull_request.user.login;
             const body = [
               `Hi @${user}, thank you for your contribution!`,
