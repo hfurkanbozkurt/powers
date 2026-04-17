@@ -101,3 +101,6 @@ JSONata is the modern, preferred way to reference and transform data in ASL. It 
 - [ASL Specification](https://states-language.net/spec.html)
 - [JSONata documentation](https://docs.jsonata.org/overview.html)
 - [Step Functions Developer Guide](https://docs.aws.amazon.com/step-functions/latest/dg/welcome.html)
+
+## License
+Apache-2.0 license.
