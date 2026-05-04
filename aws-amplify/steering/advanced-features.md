@@ -45,15 +45,18 @@ Real-time messaging via AWS IoT Core. Configure an IoT endpoint and
 attach an IAM policy for authenticated users in `amplify/backend.ts`:
 
 ```typescript
-import * as iot from 'aws-cdk-lib/aws-iot';
 import * as iam from 'aws-cdk-lib/aws-iam';
 
 const pubsubStack = backend.createStack('PubSubStack');
 
 backend.auth.resources.authenticatedUserIamRole.addToPrincipalPolicy(
   new iam.PolicyStatement({
-    actions: ['iot:Connect', 'iot:Subscribe', 'iot:Publish', 'iot:Receive'],
-    resources: ['*'],
+    actions: ['iot:Connect', 'iot:Publish', 'iot:Subscribe', 'iot:Receive'],
+    resources: [
+      `arn:aws:iot:*:*:client/\${cognito-identity.amazonaws.com:sub}`,
+      `arn:aws:iot:*:*:topic/amplify/*`,
+      `arn:aws:iot:*:*:topicfilter/amplify/*`,
+    ],
   })
 );
 
@@ -197,7 +200,7 @@ backend.auth.resources.authenticatedUserIamRole.addToPrincipalPolicy(
       'rekognition:StartFaceLivenessSession',
       'rekognition:GetFaceLivenessSessionResults',
     ],
-    resources: ['*'],
+    resources: ['*'], // Rekognition session ARNs are generated at runtime — scope with conditions if needed
   })
 );
 ```
@@ -256,7 +259,7 @@ for the full Compose integration guide.
 ## Pitfalls
 
 - **Duplicate stack names:** `backend.createStack()` names **MUST** be
-  unique across the entire backend — reusing a name silently overwrites.
+  unique across the entire backend — reusing a name causes deployment failures.
 - **Missing IAM permissions:** Geo, PubSub, and Face Liveness all require
   explicit IAM policies — Amplify does not auto-grant access to these
   services.

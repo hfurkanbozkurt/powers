@@ -26,7 +26,7 @@ calling configure. Reversing the order causes a runtime exception.
 
 ```dart
 await Amplify.addPlugins([AmplifyAuthCognito()]);
-await Amplify.configure(amplifyConfig);
+await Amplify.configure(amplifyOutputs);
 ```
 
 **Swift:**
@@ -77,7 +77,7 @@ import 'amplify_outputs.dart';
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Amplify.addPlugins([AmplifyAuthCognito()]);
-  await Amplify.configure(amplifyConfig);
+  await Amplify.configure(amplifyOutputs);
   runApp(const MyApp());
 }
 ```

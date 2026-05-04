@@ -9,6 +9,7 @@ aiModel: a.ai.model('Claude 3.5 Sonnet v2')
 ```
 
 `a.ai.model()` accepts any supported model name:
+
 - **Anthropic**: `'Claude 3 Haiku'`, `'Claude 3 Sonnet'`, `'Claude 3 Opus'`, `'Claude 3.5 Haiku'`, `'Claude 3.5 Sonnet'`, `'Claude 3.5 Sonnet v2'`, `'Claude 3.7 Sonnet'`, `'Claude Opus 4'`, `'Claude Sonnet 4'`, `'Claude Haiku 4.5'`, `'Claude Sonnet 4.5'`, `'Claude Opus 4.5'`, `'Claude Sonnet 4.6'`, `'Claude Opus 4.6'`
 - **Amazon**: `'Amazon Nova Pro'`, `'Amazon Nova Lite'`, `'Amazon Nova Micro'`
 - **Meta**: `'Llama 3.1 405B Instruct'`, `'Llama 3.1 70B Instruct'`, `'Llama 3.1 8B Instruct'`
@@ -59,6 +60,7 @@ const schema = a.schema({
 ```
 
 **CRITICAL — Authorization Constraints:**
+
 - **Conversation routes** (`a.conversation()`) **MUST** use `allow.owner()` authorization — `allow.authenticated()` and other non-owner strategies throw a TypeError at CDK assembly time (before deployment even begins).
 - **Generation routes** (`a.generation()`) **MUST** use non-owner authorization (`allow.authenticated()`, `allow.guest()`, `allow.group()`, or `allow.publicApiKey()`) — `allow.owner()` throws a TypeError at CDK assembly time (before deployment even begins).
 
@@ -120,7 +122,7 @@ npm install @aws-amplify/ui-react-ai
 Set up hooks and render the conversation component:
 
 ```tsx
-import { generateClient } from 'aws-amplify/api';
+import { generateClient } from 'aws-amplify/data';
 import { createAIHooks, AIConversation } from '@aws-amplify/ui-react-ai';
 import type { Schema } from '../amplify/data/resource';
 

@@ -144,6 +144,7 @@ externalProviders: {
   logoutUrls: ['http://localhost:3000/'],
 }
 ```
+
 **SAML** is NOT supported in `defineAuth` — the `ExternalProviderSpecificFactoryProps` type has no `saml` property. The lower-level `auth-construct` package supports SAML, but it was never wired up to the high-level API. Use CDK escape hatches via `backend.auth.resources` to configure SAML providers:
 
 ```typescript
@@ -181,7 +182,7 @@ import { defineFunction } from '@aws-amplify/backend';
 export const preSignUp = defineFunction({ name: 'pre-sign-up' });
 ```
 
-### Guest (Unauthenticated) Access
+## Guest (Unauthenticated) Access
 
 Guest access is **enabled by default** in Amplify Gen2 — the Cognito Identity Pool is created with `allowUnauthenticatedIdentities: true` automatically.
 

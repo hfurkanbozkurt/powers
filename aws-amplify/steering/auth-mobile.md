@@ -10,7 +10,7 @@ handles sign-in, sign-up, MFA, social login, passwordless, password reset, and
 all intermediate auth states automatically. **Use it unless you need a fully
 custom UI.** Zero manual `signInStep` handling is required.
 
-> **Passwordless:** The Authenticator component handles passwordless flows (email OTP, SMS OTP, and WebAuthn/passkey) automatically when configured in `defineAuth`. No custom UI code needed for passwordless authentication. On Swift/Android, use `authenticationFlow: .userChoice(preferredAuthFactor: .webAuthn)` to default to passkeys. Custom OTP/passkey flows require additional challenge handling.
+> **Passwordless:** The Authenticator component handles passwordless flows (email OTP, SMS OTP, and WebAuthn/passkey) automatically when configured in `defineAuth`. No custom UI code needed for passwordless authentication. To default to passkeys, see the platform-specific "Passwordless / user-choice flow" examples below. Custom OTP/passkey flows require additional challenge handling.
 
 ### Flutter
 
@@ -31,7 +31,7 @@ import 'package:amplify_authenticator/amplify_authenticator.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 
-import 'amplifyconfiguration.dart';
+import 'amplify_outputs.dart';
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
@@ -49,7 +49,7 @@ class _MyAppState extends State<MyApp> {
   void _configureAmplify() async {
     try {
       await Amplify.addPlugin(AmplifyAuthCognito());
-      await Amplify.configure(amplifyconfig);
+      await Amplify.configure(amplifyOutputs);
     } on Exception catch (e) {
       safePrint('Error configuring Amplify: $e');
     }
@@ -76,10 +76,10 @@ class _MyAppState extends State<MyApp> {
 
 **Dependencies** — add both SPM packages in Xcode (**File > Add Packages…**):
 
-| Package | URL | Libraries |
-|---|---|---|
-| Amplify Library for Swift | `https://github.com/aws-amplify/amplify-swift` | `Amplify`, `AWSCognitoAuthPlugin` |
-| Amplify UI Swift Authenticator | `https://github.com/aws-amplify/amplify-ui-swift-authenticator` | `Authenticator` |
+| Package                        | URL                                                             | Libraries                         |
+| ------------------------------ | --------------------------------------------------------------- | --------------------------------- |
+| Amplify Library for Swift      | `https://github.com/aws-amplify/amplify-swift`                  | `Amplify`, `AWSCognitoAuthPlugin` |
+| Amplify UI Swift Authenticator | `https://github.com/aws-amplify/amplify-ui-swift-authenticator` | `Authenticator`                   |
 
 > **SPM versioning:** For both packages, select **"Up to Next Major Version"** in Xcode's dependency rule. Do NOT pin to a specific branch (e.g., `main`) — use "Up to Next Major Version" to get compatible updates automatically.
 
@@ -129,27 +129,28 @@ Authenticator(authenticationFlow: .userChoice(
 
 ### Android (Kotlin)
 
-**Dependencies** — add to your app's `build.gradle`:
+**Dependencies** — add to your app's `build.gradle.kts`:
 
-```groovy
+```kotlin
 // Enable Jetpack Compose
 android {
     compileOptions {
-        coreLibraryDesugaringEnabled true
-        sourceCompatibility JavaVersion.VERSION_1_8
-        targetCompatibility JavaVersion.VERSION_1_8
+        isCoreLibraryDesugaringEnabled = true
+        sourceCompatibility = JavaVersion.VERSION_1_8
+        targetCompatibility = JavaVersion.VERSION_1_8
     }
-    buildFeatures { compose true }
-    composeOptions { kotlinCompilerExtensionVersion '1.5.3' }
+    buildFeatures { compose = true }
+    composeOptions { kotlinCompilerExtensionVersion = "1.5.3" }
 }
 
 dependencies {
-    implementation 'com.amplifyframework.ui:authenticator:1.4.0'
-    coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.1.5'
+    implementation("com.amplifyframework.ui:authenticator:1.4.0")
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 }
 ```
 
 `INTERNET` permission is required in `AndroidManifest.xml`:
+
 ```xml
 <uses-permission android:name="android.permission.INTERNET"/>
 ```
@@ -216,6 +217,7 @@ import 'package:amplify_flutter/amplify_flutter.dart';
 ```
 
 **Sign in:**
+
 ```dart
 final result = await Amplify.Auth.signIn(
   username: username,
@@ -233,6 +235,7 @@ if (result.isSignedIn) {
 ```
 
 **Confirm sign-in** (for MFA / challenge steps):
+
 ```dart
 final result = await Amplify.Auth.confirmSignIn(
   confirmationValue: codeFromUser,
@@ -240,6 +243,7 @@ final result = await Amplify.Auth.confirmSignIn(
 ```
 
 **Sign up:**
+
 ```dart
 final result = await Amplify.Auth.signUp(
   username: username,
@@ -254,6 +258,7 @@ if (result.nextStep.signUpStep == AuthSignUpStep.confirmSignUp) {
 ```
 
 **Confirm sign-up:**
+
 ```dart
 await Amplify.Auth.confirmSignUp(
   username: username,
@@ -270,6 +275,7 @@ import Amplify
 ```
 
 **Sign in:**
+
 ```swift
 do {
     let result = try await Amplify.Auth.signIn(
@@ -293,6 +299,7 @@ do {
 ```
 
 **Confirm sign-in:**
+
 ```swift
 let result = try await Amplify.Auth.confirmSignIn(
     challengeResponse: codeFromUser
@@ -300,6 +307,7 @@ let result = try await Amplify.Auth.confirmSignIn(
 ```
 
 **Sign up:**
+
 ```swift
 let options = AuthSignUpRequest.Options(
     userAttributes: [AuthUserAttribute(.email, value: email)]
@@ -315,6 +323,7 @@ if case .confirmUser(let details, _, _) = result.nextStep {
 ```
 
 **Confirm sign-up:**
+
 ```swift
 try await Amplify.Auth.confirmSignUp(
     for: username,
@@ -328,12 +337,13 @@ Android supports **both** Kotlin coroutines and callbacks. Coroutines are
 recommended.
 
 ```kotlin
-import com.amplifyframework.core.Amplify
+import com.amplifyframework.kotlin.core.Amplify
 import com.amplifyframework.auth.AuthUserAttributeKey
 import com.amplifyframework.auth.options.AuthSignUpOptions
 ```
 
 **Sign in (coroutines — recommended):**
+
 ```kotlin
 try {
     val result = Amplify.Auth.signIn("username", "password")
@@ -352,7 +362,10 @@ try {
 ```
 
 **Sign in (callbacks — alternative):**
+
 ```kotlin
+import com.amplifyframework.core.Amplify  // Java facade for callback style
+
 Amplify.Auth.signIn("username", "password",
     { result -> Log.i("Auth", "Signed in: ${result.isSignedIn}") },
     { error -> Log.e("Auth", "Sign in failed", error) }
@@ -360,6 +373,7 @@ Amplify.Auth.signIn("username", "password",
 ```
 
 **Confirm sign-in (coroutines):**
+
 ```kotlin
 try {
     val result = Amplify.Auth.confirmSignIn("code from user")
@@ -370,6 +384,7 @@ try {
 ```
 
 **Sign up (coroutines):**
+
 ```kotlin
 val options = AuthSignUpOptions.builder()
     .userAttributes(listOf(
@@ -385,6 +400,7 @@ try {
 ```
 
 **Confirm sign-up (coroutines):**
+
 ```kotlin
 try {
     Amplify.Auth.confirmSignUp("username", "123456")
@@ -399,6 +415,7 @@ Social sign-in uses an OAuth web UI redirect. **Callback URLs must match** the
 `callbackUrls` configured in your `defineAuth` backend resource.
 
 **Flutter:**
+
 ```dart
 final result = await Amplify.Auth.signInWithWebUI(
   provider: AuthProvider.google,
@@ -406,11 +423,13 @@ final result = await Amplify.Auth.signInWithWebUI(
 ```
 
 Platform setup for Flutter OAuth:
+
 - **Android:** Add `<intent-filter>` with your callback scheme to `MainActivity` in `AndroidManifest.xml`.
 - **iOS:** No additional platform configuration required.
 - **macOS:** Enable App Sandbox → "Incoming Connections (Server)" in Xcode.
 
 **Swift:**
+
 ```swift
 let result = try await Amplify.Auth.signInWithWebUI(
     for: .google,
@@ -421,6 +440,7 @@ let result = try await Amplify.Auth.signInWithWebUI(
 Platform setup: Add callback URL scheme to `Info.plist` under `CFBundleURLSchemes`.
 
 **Android (coroutines):**
+
 ```kotlin
 try {
     val result = Amplify.Auth.signInWithSocialWebUI(
@@ -433,6 +453,7 @@ try {
 ```
 
 Platform setup: Add `HostedUIRedirectActivity` with your callback scheme to `AndroidManifest.xml`:
+
 ```xml
 <activity
     android:name="com.amplifyframework.auth.cognito.activities.HostedUIRedirectActivity"

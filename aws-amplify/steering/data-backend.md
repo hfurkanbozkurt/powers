@@ -21,10 +21,7 @@ export type Schema = ClientSchema<typeof schema>;
 export const data = defineData({
   schema,
   authorizationModes: {
-    defaultAuthorizationMode: 'apiKey',
-    apiKeyAuthorizationMode: {
-      expiresInDays: 30,
-    },
+    defaultAuthorizationMode: 'userPool',
   },
 });
 ```
@@ -43,8 +40,8 @@ this export, frontend clients lose all type inference.
 **Field types:** `a.string()`, `a.integer()`, `a.float()`, `a.boolean()`,
 `a.date()`, `a.datetime()`, `a.timestamp()`, `a.time()`, `a.email()`,
 `a.url()`, `a.phone()`, `a.ipAddress()`, `a.json()`, `a.id()`,
-`a.enum([...])`. Chain `.required()`, `.default(value)`, or `.array()` on
-any field.
+`a.enum([...])`. Chain `.required()` or `.array()` on any field;
+`.default(value)` on scalar fields only (not enums — see Pitfalls).
 
 ## Authorization Rules
 
@@ -57,7 +54,7 @@ call** (with parentheses). In storage access rules, `allow.guest` is a
 ```typescript
 a.model({ /* fields */ }).authorization(allow => [
   allow.publicApiKey().to(['read']), // API key: public read
-  allow.guest().to(['read']), // Requires defaultAuthorizationMode: 'iam' — NOTE: method call ()
+  allow.guest().to(['read']), // Requires defaultAuthorizationMode: 'iam'
   allow.owner(), // Creator has full CRUD
   allow.authenticated().to(['read']), // Any signed-in user can read
   allow.group('Admins'), // Named Cognito group
@@ -73,6 +70,7 @@ Post: a.model({
   secret: a.string().authorization(allow => [allow.owner()]),
 }).authorization(allow => [allow.authenticated().to(['read'])])
 ```
+
 **Multi-owner:** Use `allow.ownersDefinedIn('editors')` with an
 `editors: a.string().array()` field to grant multiple users ownership.
 **Dynamic groups:** Use `allow.groupsDefinedIn('teamGroups')` with a

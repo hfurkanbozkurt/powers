@@ -11,9 +11,7 @@ description: 'Build and deploy full-stack web and mobile apps with AWS Amplify G
   Amplify Gen2; project has amplify/ directory or amplify_outputs; code imports @aws-amplify
   packages; user asks about defineBackend, defineAuth, defineData, defineStorage,
   or npx ampx. SKIP: Amplify Gen1 (amplify CLI v6), standalone SAM/CDK without Amplify
-  (use aws-serverless), direct Bedrock without Amplify AI Kit (use bedrock).
-
-  '
+  (use aws-serverless), direct Bedrock without Amplify AI Kit (use bedrock).'
 keywords:
 - amplify
 - gen2
@@ -34,34 +32,130 @@ author: AWS
 
 # AWS Amplify Gen2
 
-## Overview
+Build and deploy full-stack applications using AWS Amplify Gen2's TypeScript
+code-first approach. This skill covers backend resource creation, frontend
+integration across 8 frameworks, and deployment workflows.
 
-AWS Amplify Gen2 is a TypeScript code-first developer experience for building full-stack web and mobile applications. All backend resources — authentication (Cognito), data (AppSync/DynamoDB), storage (S3), serverless functions (Lambda), and AI (Bedrock via Amplify AI Kit) — are defined in TypeScript under an `amplify/` directory. A single `amplify_outputs.json` file is generated to configure frontends.
-
-**Supported frameworks:** React (Vite), Next.js, Vue, Angular, React Native, Flutter, Swift, Android.
-
-**Key differences from Gen1:** No CLI wizards, no `amplify push` — everything is code-defined and deployed via `npx ampx sandbox` (dev) or `npx ampx pipeline-deploy` (CI/CD).
-
-## Getting Started
-
-### Prerequisites
+## Prerequisites
 
 - Node.js ^18.19.0 || ^20.6.0 || >=22 and npm
 - AWS credentials configured (`aws sts get-caller-identity` succeeds)
 - For sandbox: `npx ampx --version` returns a valid version
 - For mobile: Platform-specific tooling (Xcode, Android Studio, Flutter SDK)
 
-### Quick Start
+## Defaults & Assumptions
 
-```bash
-# Create a new Amplify Gen2 project
-npm create amplify@latest
+When the user does not specify a framework:
 
-# Start local sandbox (watches for changes, hot-deploys to AWS)
-npx ampx sandbox
-```
+- **Web:** You **SHOULD** default to **React** (Vite) and explain the choice.
+- **Mobile:** You **MUST** ask which platform the user wants (Flutter,
+  Swift, Android, or React Native). There is no universal mobile default.
+- **Neither specified:** If the user says "build an app" without clarifying web
+  vs. mobile, you **MUST** ask before proceeding.
+- **Backend only:** If only backend changes are requested and no frontend
+  framework is mentioned, skip the frontend integration step entirely.
 
-### Project Structure
+When the user does not specify tooling or strategy:
+
+- **Package manager:** You **SHOULD** default to **npm** unless the user
+  specifies yarn or pnpm.
+- **Language:** You **SHOULD** default to **TypeScript**. Gen2 backends are
+  TypeScript-only; frontends **SHOULD** follow the project's existing language.
+- **Next.js:** You **SHOULD** default to **App Router** unless the user
+  specifies Pages Router.
+- **React Native:** Ask the user whether they use **Expo** or **bare
+  React Native CLI**.
+- **Auth:** You **SHOULD** default to **email/password** as the login method
+  unless the user specifies social login, SAML, or another provider.
+- **Data authorization:** default to **`publicApiKey`**
+  (`allow.publicApiKey()`) — this is the starter template default. When
+  auth is added, switch to **owner-based** (`allow.owner()`) with
+  `defaultAuthorizationMode: 'userPool'`.
+
+## Quick Start — Route to the Right Reference
+
+### Step 0: Read Core Reference (ALWAYS)
+
+You **MUST** read the core reference for your target platform **before
+reading any other reference file**. These contain Gen2 detection,
+`Amplify.configure()` placement per framework, sandbox commands, required
+packages, and directory structure rules — patterns needed for **all** tasks,
+not just new projects.
+
+- **Web** (React, Next.js, Vue, Angular, React Native): You **MUST** read
+  [core-web.md](references/core-web.md)
+- **Mobile** (Flutter, Swift, Android): You **MUST** read
+  [core-mobile.md](references/core-mobile.md)
+- **Backend only** (no frontend work): Skip to Step 1.
+
+### Step 1: Identify the Task Type
+
+| Task                                     | Go To                                                                    |
+| ---------------------------------------- | ------------------------------------------------------------------------ |
+| **Create a new project**                 | → [scaffolding.md](references/scaffolding.md), then Step 2 and/or Step 3 |
+| **Add or modify a backend feature**      | → Step 2 (Backend Features)                                              |
+| **Connect frontend to existing backend** | → Step 3 (Frontend Integration)                                          |
+| **Deploy the application**               | → [deployment.md](references/deployment.md)                              |
+
+### Step 2: Backend Features
+
+You **MUST** read the corresponding reference for each backend feature:
+
+| Feature          | Reference                                               | When to Use                                                                                                |
+| ---------------- | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------- |
+| Authentication   | [auth-backend.md](references/auth-backend.md)           | Email/password, social login, MFA, SAML/OIDC                                                               |
+| Data Models      | [data-backend.md](references/data-backend.md)           | GraphQL schema, DynamoDB, relationships, auth rules                                                        |
+| File Storage     | [storage-backend.md](references/storage-backend.md)     | S3 uploads/downloads, access rules                                                                         |
+| Functions & API  | [functions-and-api.md](references/functions-and-api.md) | Lambda, custom resolvers, REST/HTTP APIs, calling from client                                              |
+| AI Features      | [ai.md](references/ai.md)                               | Conversation, generation, AI tools via Bedrock _(backend config + React/Next.js frontend)_                 |
+| Geo, PubSub, CDK | [advanced-features.md](references/advanced-features.md) | Backend-only: custom CDK stacks, overrides, custom outputs. Backend + frontend: Geo, PubSub, Face Liveness |
+
+Each backend feature file is self-contained. Load only what you need.
+
+> **Routing note:** These files apply for both **adding** and **modifying**
+> features. Route to the same file whether the user says "add auth" or
+> "change auth config" — each reference covers the full define surface.
+
+### Step 3: Frontend Integration
+
+After configuring backend resources, connect the frontend. Choose by
+platform and feature:
+
+**Web** (React, Next.js, Vue, Angular, React Native):
+
+| Feature                   | Reference                                   |
+| ------------------------- | ------------------------------------------- |
+| Auth UI & flows           | [auth-web.md](references/auth-web.md)       |
+| Data CRUD & subscriptions | [data-web.md](references/data-web.md)       |
+| Storage upload/download   | [storage-web.md](references/storage-web.md) |
+
+**Mobile** (Flutter, Swift, Android):
+
+| Feature                   | Reference                                         |
+| ------------------------- | ------------------------------------------------- |
+| Auth UI & flows           | [auth-mobile.md](references/auth-mobile.md)       |
+| Data CRUD & subscriptions | [data-mobile.md](references/data-mobile.md)       |
+| Storage upload/download   | [storage-mobile.md](references/storage-mobile.md) |
+
+> **Note:** AI and Functions frontend patterns are included in
+> [ai.md](references/ai.md) and
+> [functions-and-api.md](references/functions-and-api.md) respectively —
+> they are **not** split into separate web/mobile files.
+
+## Core Concepts
+
+### Amplify Gen2 Architecture
+
+- **Code-first:** All backend resources defined in TypeScript under `amplify/`
+- **Main config:** `amplify/backend.ts` imports and combines all resources via
+  `defineBackend()`
+- **Resource files:** `amplify/auth/resource.ts`, `amplify/data/resource.ts`,
+  `amplify/storage/resource.ts`, `amplify/functions/<name>/resource.ts`
+- **Generated output:** `amplify_outputs.json` — consumed by frontend
+  `Amplify.configure()`. **Gitignored** — generated by `npx ampx sandbox`
+  (local dev) or `npx ampx pipeline-deploy` (CI/CD), never committed.
+
+### Directory Structure
 
 ```
 project-root/
@@ -75,268 +169,67 @@ project-root/
 │           ├── resource.ts   # defineFunction({ ... })
 │           └── handler.ts    # export const handler = ...
 ├── src/                      # Frontend code
-├── amplify_outputs.json      # Generated — DO NOT edit or commit
+├── amplify_outputs.json      # Generated — DO NOT edit or commit (gitignored)
 └── package.json
 ```
 
-### Key Packages
+### Key APIs
+
+| Package                    | Purpose                                                                        |
+| -------------------------- | ------------------------------------------------------------------------------ |
+| `@aws-amplify/backend`     | `defineAuth`, `defineData`, `defineStorage`, `defineFunction`, `defineBackend` |
+| `aws-amplify`              | Frontend: `Amplify.configure()`, `generateClient()`, auth/data/storage APIs    |
+| `@aws-amplify/ui-react`    | Pre-built UI: `<Authenticator>`, `<StorageBrowser>`                            |
+| `@aws-amplify/ui-react-ai` | AI UI: `<AIConversation>`, `useAIConversation`                                 |
+
+## Documentation & Resource Verification
+
+When you need AWS documentation (advanced CDK constructs, service limits,
+provider-specific auth config):
+
+1. **If AWS documentation tools are available (e.g., via AWS MCP)**, you **SHOULD**
+   use them to search and retrieve relevant documentation pages.
+2. **If AWS documentation tools are unavailable**, you **MUST** fall back to web
+   search or the `aws` CLI for resource verification.
+
+> **Why conditional:** Amplify Gen2 is code-first — the primary workflow is
+> editing TypeScript files and running `npx ampx` commands. AWS MCP tools
+> are useful for post-deployment verification but are **not** required.
+
+## Security Considerations
+
+- Use `secret()` for all credentials and API keys — never hardcode or use plain environment variables for sensitive values
+- Review `allow.guest()` exposure carefully — guest access is enabled by default and grants unauthenticated users access to IAM-authorized resources
+- Scope IAM policies to specific resource ARNs — avoid `resources: ['*']` in production
+- Never log secrets or include them in error messages
+
+## Links
+
+> All documentation links use `react` as the default platform slug. Replace `/react/` in any URL with your target framework:
+
+| Framework    | Slug           |
+| ------------ | -------------- |
+| React        | `react`        |
+| Next.js      | `nextjs`       |
+| Vue          | `vue`          |
+| Angular      | `angular`      |
+| React Native | `react-native` |
+| Flutter      | `flutter`      |
+| Swift        | `swift`        |
+| Android      | `android`      |
 
-| Package | Purpose |
-|---------|---------|
-| `@aws-amplify/backend` | `defineAuth`, `defineData`, `defineStorage`, `defineFunction`, `defineBackend` |
-| `aws-amplify` | Frontend: `Amplify.configure()`, `generateClient()`, auth/data/storage APIs |
-| `@aws-amplify/ui-react` | Pre-built UI: `<Authenticator>`, `<StorageBrowser>` |
-| `@aws-amplify/ui-react-ai` | AI UI: `<AIConversation>`, `useAIConversation` |
-
-## When to Load Steering Files
-
-**IMPORTANT:** Always load the appropriate steering file(s) before starting any Amplify work. Do not improvise — these files contain validated, version-specific patterns.
-
-### Step 0: Always Load the Core Reference First
-
-Before reading any feature-specific steering file, you **MUST** load the core reference for your target platform. These contain Gen2 detection, `Amplify.configure()` placement per framework, sandbox commands, required packages, and directory structure rules.
-
-| Platform | Steering File | When |
-|----------|---------------|------|
-| Web (React, Next.js, Vue, Angular, React Native) | `core-web.md` | Any web/RN frontend work |
-| Mobile (Flutter, Swift, Android) | `core-mobile.md` | Any native mobile frontend work |
-| Backend only (no frontend) | Skip to Step 1 | No frontend changes needed |
-
-### Step 1: Project Scaffolding
-
-| Task | Steering File |
-|------|---------------|
-| Create a new Amplify Gen2 project | `scaffolding.md` → then continue to Step 2 and/or Step 3 |
-
-### Step 2: Backend Features
-
-Load the steering file for each backend feature you need to add or modify:
-
-| Feature | Steering File | Covers |
-|---------|---------------|--------|
-| Authentication | `auth-backend.md` | Email/password, social login, MFA, SAML/OIDC, user groups, custom attributes |
-| Data Models | `data-backend.md` | GraphQL schema, DynamoDB, relationships, enum types, authorization rules |
-| File Storage | `storage-backend.md` | S3 buckets, access rules (guest/authenticated/groups/entity), paths |
-| Functions & APIs | `functions-and-api.md` | Lambda functions, custom resolvers, REST/HTTP APIs, environment variables |
-| AI Features | `ai.md` | Conversation routes, generation routes, AI tools via Bedrock (backend + React/Next.js frontend) |
-| Geo, PubSub, CDK | `advanced-features.md` | Custom CDK stacks, overrides, custom outputs, Geo, PubSub, Face Liveness |
-
-### Step 3: Frontend Integration
-
-After configuring backend resources, load the frontend steering file for your platform and feature:
-
-**Web** (React, Next.js, Vue, Angular, React Native):
-
-| Feature | Steering File |
-|---------|---------------|
-| Auth UI & flows | `auth-web.md` |
-| Data CRUD & subscriptions | `data-web.md` |
-| Storage upload/download | `storage-web.md` |
-
-**Mobile** (Flutter, Swift, Android):
-
-| Feature | Steering File |
-|---------|---------------|
-| Auth UI & flows | `auth-mobile.md` |
-| Data CRUD & subscriptions | `data-mobile.md` |
-| Storage upload/download | `storage-mobile.md` |
-
-> **Note:** AI and Functions frontend patterns are included in `ai.md` and `functions-and-api.md` respectively — they are not split into separate web/mobile files.
-
-### Step 4: Deployment
-
-| Task | Steering File |
-|------|---------------|
-| Deploy to sandbox or production | `deployment.md` |
-
-### Quick Routing Examples
-
-| User Says | Load |
-|-----------|------|
-| "Build a full-stack app" | `core-web.md` → `scaffolding.md` → backend files → frontend files → `deployment.md` |
-| "Add authentication" | `auth-backend.md` (+ `core-web.md` → `auth-web.md` if frontend needed) |
-| "Add a data model" | `data-backend.md` |
-| "Connect my React app to Amplify" | `core-web.md` → relevant frontend files |
-| "Deploy to production" | `deployment.md` |
-| "Add AI chat" | `ai.md` (includes both backend and React/Next.js frontend) |
-| "Build a Flutter app with auth" | `core-mobile.md` → `scaffolding.md` → `auth-backend.md` → `auth-mobile.md` |
-
-## Available MCP Tools
-
-When AWS documentation MCP tools are available, use them to look up advanced CDK constructs, service limits, or provider-specific configuration.
-
-| Tool | Use For |
-|------|---------|
-| `search_documentation` | Find Amplify Gen2 documentation pages by topic |
-| `read_documentation` | Read specific Amplify documentation pages |
-| `recommend` | Get related documentation recommendations |
-
-**Tip:** Amplify's LLM-optimized docs are at [https://docs.amplify.aws/ai/llms.txt](https://docs.amplify.aws/ai/llms.txt)
-
-## Common Workflows
-
-### 1. Scaffold a New Full-Stack Project
-
-```bash
-npm create amplify@latest
-cd my-amplify-app
-npx ampx sandbox
-```
-
-Load `scaffolding.md` for framework-specific setup, directory structure, and starter template details.
-
-### 2. Add Authentication
-
-In `amplify/auth/resource.ts`:
-```typescript
-import { defineAuth } from '@aws-amplify/backend';
-
-export const auth = defineAuth({
-  loginWith: {
-    email: true, // or phone, or external providers
-  },
-});
-```
-
-Register in `amplify/backend.ts`:
-```typescript
-import { defineBackend } from '@aws-amplify/backend';
-import { auth } from './auth/resource';
-
-defineBackend({ auth });
-```
-
-Load `auth-backend.md` for MFA, social login, SAML/OIDC, custom attributes, and user groups.
-
-### 3. Add a Data Model
-
-In `amplify/data/resource.ts`:
-```typescript
-import { type ClientSchema, a, defineData } from '@aws-amplify/backend';
-
-const schema = a.schema({
-  Todo: a.model({
-    content: a.string(),
-    isDone: a.boolean(),
-  }).authorization(allow => [allow.publicApiKey()]),
-});
-
-export type Schema = ClientSchema<typeof schema>;
-export const data = defineData({ schema });
-```
-
-Load `data-backend.md` for relationships, enum types, secondary indexes, and authorization rules.
-
-### 4. Deploy to Production
-
-```bash
-# CI/CD pipeline deployment
-npx ampx pipeline-deploy --branch main --app-id <amplify-app-id>
-```
-
-Load `deployment.md` for Amplify Hosting, custom CI/CD pipelines, environment management, and fullstack branch deployments.
-
-## Defaults & Assumptions
-
-When the user does not specify preferences:
-
-| Choice | Default | Notes |
-|--------|---------|-------|
-| Web framework | React (Vite) | Explain the choice; user can override |
-| Mobile framework | **ASK** | No default — must ask Flutter/Swift/Android/RN |
-| Package manager | npm | Unless user specifies yarn or pnpm |
-| Language | TypeScript | Gen2 backends are TS-only; frontends follow project convention |
-| Next.js router | App Router | Unless user specifies Pages Router |
-| Auth login method | Email/password | Unless user specifies social/SAML/other |
-| Data authorization | `publicApiKey` | Switch to `owner`-based when auth is added |
-
-**Critical:** If the user says "build an app" without specifying web vs. mobile, you **MUST** ask before proceeding.
-
-## Best Practices
-
-1. **Always use the `amplify/` directory** — all backend resources are TypeScript files under `amplify/`. Never use CLI wizards or manual AWS console configuration.
-
-2. **Never edit `amplify_outputs.json`** — this file is auto-generated by `npx ampx sandbox` (dev) or `npx ampx pipeline-deploy` (CI/CD). It should be in `.gitignore`.
-
-3. **One `defineBackend()` call** — in `amplify/backend.ts`, combine all resources into a single `defineBackend({ auth, data, storage })` call.
-
-4. **Use `a.schema()` for data models** — define your GraphQL schema using the type-safe `a` builder from `@aws-amplify/backend`. Avoid writing raw GraphQL SDL.
-
-5. **Authorization rules are mandatory** — every model needs `.authorization(allow => [...])`. Start with `allow.publicApiKey()` for prototyping, switch to `allow.owner()` or `allow.groups()` for production.
-
-6. **Configure Amplify once at the app root** — call `Amplify.configure(outputs)` in your root layout/entry file, never in individual components.
-
-7. **Use pre-built UI components** — `<Authenticator>` from `@aws-amplify/ui-react` handles the entire auth flow. Don't build custom login forms unless you have specific requirements.
-
-8. **Sandbox for development** — `npx ampx sandbox` creates an isolated cloud environment per developer. Use `--identifier` for multiple sandboxes.
-
-## Troubleshooting
-
-### Sandbox Won't Start
-
-**Symptoms:** `npx ampx sandbox` fails with credential or bootstrap errors.
-
-**Solutions:**
-1. Verify AWS credentials: `aws sts get-caller-identity`
-2. Bootstrap CDK if first time: `npx ampx sandbox` will prompt automatically
-3. Check Node.js version: must be ^18.19.0, ^20.6.0, or >=22
-4. Ensure no other sandbox is running with the same identifier
-
-### "Cannot find module" or Import Errors
-
-**Cause:** Missing dependencies or incorrect import paths.
-
-**Solutions:**
-1. Run `npm install` to ensure all packages are installed
-2. Check that `@aws-amplify/backend` is in `devDependencies` (not `dependencies`)
-3. Check that `aws-amplify` is in `dependencies` for frontend code
-4. Verify import paths match the package names exactly
-
-### Data Model Authorization Errors
-
-**Symptoms:** "Not Authorized" errors when querying or mutating data.
-
-**Solutions:**
-1. Ensure every model has `.authorization(allow => [...])` rules
-2. Check `defaultAuthorizationMode` in `defineData()` matches your auth setup
-3. For authenticated access, ensure the user is signed in before making API calls
-4. For `owner`-based auth, the `owner` field is auto-managed — don't set it manually
-
-### `amplify_outputs.json` Not Found
-
-**Cause:** Sandbox hasn't been started, or the file is gitignored (expected).
-
-**Solutions:**
-1. Run `npx ampx sandbox` to generate the file locally
-2. For CI/CD, `npx ampx pipeline-deploy` generates it during build
-3. Ensure your `.gitignore` includes `amplify_outputs.json` — it should NOT be committed
-
-### Next.js SSR/SSG Issues
-
-**Symptoms:** `Amplify.configure()` errors in server components, hydration mismatches.
-
-**Solutions:**
-1. Call `Amplify.configure()` in a client-side wrapper component (`'use client'`)
-2. For server-side data access, use `generateServerClientUsingCookies()` from `aws-amplify/adapter-nextjs`
-3. Never import `aws-amplify` in server components directly
-
-## Resources
-
-- [Amplify Gen2 Documentation](https://docs.amplify.aws/react/)
 - [Amplify Docs for LLMs](https://docs.amplify.aws/ai/llms.txt)
-- [Getting Started Guide](https://docs.amplify.aws/react/start/)
-- [Quickstart Tutorial](https://docs.amplify.aws/react/start/quickstart/)
+- [Amplify Docs](https://docs.amplify.aws/)
+- [Gen2 Docs](https://docs.amplify.aws/react/)
+- [Getting Started](https://docs.amplify.aws/react/start/)
+- [Quickstart](https://docs.amplify.aws/react/start/quickstart/)
 - [Account Setup](https://docs.amplify.aws/react/start/account-setup/)
 - [How Amplify Works](https://docs.amplify.aws/react/how-amplify-works/)
+- [Core Concepts](https://docs.amplify.aws/react/how-amplify-works/concepts/)
 - [Build a Backend](https://docs.amplify.aws/react/build-a-backend/)
 - [Deploy and Host](https://docs.amplify.aws/react/deploy-and-host/)
-- [CLI Reference](https://docs.amplify.aws/react/reference/cli-commands/)
-- [Project Structure Reference](https://docs.amplify.aws/react/reference/project-structure/)
-- [Amplify UI Components](https://ui.docs.amplify.aws/)
-- [Amplify GitHub](https://github.com/aws-amplify)
-
-> All documentation links use `react` as the default platform slug. Replace `/react/` with `/nextjs/`, `/vue/`, `/angular/`, `/react-native/`, `/flutter/`, `/swift/`, or `/android/` for other frameworks.
-
----
-
-This power integrates with [`awslabs.aws-documentation-mcp-server@latest`](https://github.com/awslabs/mcp) for documentation search and retrieval.
+- [Troubleshooting](https://docs.amplify.aws/react/build-a-backend/troubleshooting/)
+- [CLI Commands](https://docs.amplify.aws/react/reference/cli-commands/)
+- [Amplify Outputs](https://docs.amplify.aws/react/reference/amplify_outputs/)
+- [Project Structure](https://docs.amplify.aws/react/reference/project-structure/)
+- [Amplify UI](https://ui.docs.amplify.aws/)

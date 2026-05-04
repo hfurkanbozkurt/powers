@@ -88,7 +88,7 @@ npm install aws-amplify
 npx --yes create-expo-app@latest my-app
 cd my-app
 npm create amplify@latest -y
-npm install aws-amplify @aws-amplify/react-native @react-native-async-storage/async-storage
+npm install aws-amplify @aws-amplify/react-native @react-native-async-storage/async-storage react-native-get-random-values
 ```
 
 ### Bare CLI
@@ -97,7 +97,7 @@ npm install aws-amplify @aws-amplify/react-native @react-native-async-storage/as
 npx --yes @react-native-community/cli init MyApp --pm npm
 cd MyApp
 npm create amplify@latest -y
-npm install aws-amplify @aws-amplify/react-native @react-native-async-storage/async-storage
+npm install aws-amplify @aws-amplify/react-native @react-native-async-storage/async-storage react-native-get-random-values
 npx --yes pod-install # iOS only
 ```
 
@@ -142,12 +142,12 @@ existing Android Studio project.
 1. In the project root, run: `npm create amplify@latest -y`
 2. Add dependencies to `app/build.gradle.kts`:
 
-```kotlin
-dependencies {
-    implementation("com.amplifyframework:core:2.+")
-    implementation("com.amplifyframework:aws-auth-cognito:2.+")
-}
-```
+   ```kotlin
+   dependencies {
+       implementation("com.amplifyframework:core:2.+")
+       implementation("com.amplifyframework:aws-auth-cognito:2.+")
+   }
+   ```
 
 3. Copy `amplify_outputs.json` into `app/src/main/res/raw/`.
 

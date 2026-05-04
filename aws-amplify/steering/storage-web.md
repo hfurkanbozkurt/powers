@@ -7,14 +7,14 @@
 
 All imports from `'aws-amplify/storage'`.
 
-| Operation | Call |
-|---|---|
-| Upload | `uploadData({ path: 'public/file.txt', data })` |
-| Download blob | `(await downloadData({ path }).result).body.blob()` |
-| Presigned URL | `await getUrl({ path })` (default 15 min expiry) |
-| List | `await list({ path: 'public/' })` → `{ items }` |
-| Remove | `await remove({ path })` |
-| Copy | `await copy({ source: { path }, destination: { path } })` |
+| Operation     | Call                                                      |
+| ------------- | --------------------------------------------------------- |
+| Upload        | `uploadData({ path: 'public/file.txt', data })`           |
+| Download blob | `(await downloadData({ path }).result).body.blob()`       |
+| Presigned URL | `await getUrl({ path })` (default 15 min expiry)          |
+| List          | `await list({ path: 'public/' })` → `{ items }`           |
+| Remove        | `await remove({ path })`                                  |
+| Copy          | `await copy({ source: { path }, destination: { path } })` |
 
 `uploadData` returns a control object: `.pause()`, `.resume()`, `.cancel()`, `.result` (Promise). Progress: `options.onProgress: ({ transferredBytes, totalBytes }) => …`.
 
@@ -32,11 +32,11 @@ import '@aws-amplify/ui-react-storage/styles.css';
 **WARNING:** Missing either CSS import causes unstyled components.
 Training data often omits the second import.
 
-| Component | Import from | Key props / setup |
-|---|---|---|
+| Component            | Import from                             | Key props / setup                                                                                         |
+| -------------------- | --------------------------------------- | --------------------------------------------------------------------------------------------------------- |
 | `<StorageBrowser />` | `@aws-amplify/ui-react-storage/browser` | `createStorageBrowser({ config: createAmplifyAuthAdapter() })` — bucket specified by name string, NOT ARN |
-| `<StorageImage />` | `@aws-amplify/ui-react-storage` | `alt`, `path` |
-| `<FileUploader />` | `@aws-amplify/ui-react-storage` | `path`, `maxFileCount`, `acceptedFileTypes` |
+| `<StorageImage />`   | `@aws-amplify/ui-react-storage`         | `alt`, `path`                                                                                             |
+| `<FileUploader />`   | `@aws-amplify/ui-react-storage`         | `path`, `maxFileCount`, `acceptedFileTypes`                                                               |
 
 ## React Native
 
@@ -47,7 +47,7 @@ Same JS API as web — all imports from `'aws-amplify/storage'`:
 ## Pitfalls
 
 - **`{entity_id}` paths:** `protected/{entity_id}/` and `private/{entity_id}/` resolve to the user's Cognito identity ID at runtime.
-- **Upload cancellation:** `result.cancel()` rejects the promise — you **MUST** catch `CanceledError`.
+- **Upload cancellation:** `uploadData` returns a task with `.cancel()` — call `task.cancel()`, not `result.cancel()`. Await `task.result` for the final outcome and catch `CanceledError`.
 - **Bucket option:** Accepts string name (matching `defineStorage` `name`) or `{ bucketName, region }` — raw ARN does **NOT** work.
 
 ## Links

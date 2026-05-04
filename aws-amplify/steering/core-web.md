@@ -50,6 +50,7 @@ import { Amplify } from 'aws-amplify';
 import outputs from '../amplify_outputs.json';
 Amplify.configure(outputs);
 ```
+
 **Next.js (App Router)** — `app/layout.tsx`:
 
 ```typescript
@@ -67,6 +68,7 @@ import { Amplify } from 'aws-amplify';
 import outputs from '../amplify_outputs.json';
 Amplify.configure(outputs);
 ```
+
 **Angular** — `src/main.ts`:
 
 ```typescript

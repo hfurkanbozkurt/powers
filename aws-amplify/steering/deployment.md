@@ -12,6 +12,7 @@ Before deploying, verify:
 
 **`amplify_outputs.json` is gitignored** — it is generated at build
 time, NOT committed to source control:
+
 - **Local dev:** `npx ampx sandbox` generates it automatically
 - **CI/CD:** `npx ampx pipeline-deploy` generates it during the build phase
 - **Other frontend apps in a monorepo:** Use
@@ -91,13 +92,13 @@ aws amplify create-branch --app-id "$APP_ID" --branch-name main
 Create `amplify.yml` in the project root. Set `baseDirectory` per
 framework:
 
-| Framework | baseDirectory |
-|-----------|---------------|
-| Vite (React/Vue) | `dist` |
-| CRA | `build` |
-| Next.js (export) | `out` |
-| Next.js (SSR) | `.next` |
-| Angular | `dist/<project-name>/browser` |
+| Framework        | baseDirectory                 |
+| ---------------- | ----------------------------- |
+| Vite (React/Vue) | `dist`                        |
+| CRA              | `build`                       |
+| Next.js (export) | `out`                         |
+| Next.js (SSR)    | `.next`                       |
+| Angular          | `dist/<project-name>/browser` |
 
 **Wrong `baseDirectory` = blank page in production** (silent failure).
 Always match the framework table above.
@@ -138,6 +139,7 @@ appRoot: packages/web
 `appRoot: packages/web` (correct) vs `appRoot: /packages/web` (wrong)
 
 Monorepo rules:
+
 - Only **ONE** app runs `npx ampx pipeline-deploy`; other apps use
   `npx ampx generate outputs --app-id <backend-app-id>` to get their
   `amplify_outputs.json`.
@@ -150,6 +152,7 @@ aws amplify start-job --app-id "$APP_ID" --branch-name main --job-type RELEASE
 ```
 
 ## Secrets Management
+
 **Sandbox:** Set secrets via CLI:
 
 ```bash
@@ -173,6 +176,11 @@ via the AWS CLI:
 aws amplify update-app --app-id "$APP_ID" \
   --environment-variables MY_API_KEY=<value>
 ```
+
+> **Important:** `--environment-variables` stores values as **plain text**.
+> For sensitive values (API keys, tokens), use `npx ampx sandbox secret set`
+> (sandbox) or `npx ampx secret set --branch` (production) which stores in
+> SSM SecureString.
 
 Reference secrets in functions using `secret()` — see
 [functions-and-api.md](functions-and-api.md) for the pattern.
@@ -227,6 +235,7 @@ Production URL format: `https://<branch>.<app-id>.amplifyapp.com`
 After deployment, check job status with `aws amplify list-jobs --app-id "$APP_ID" --branch-name main --query 'jobSummaries[0].status'` and verify `amplify_outputs.json` endpoints match expected values.
 
 ## Post-Deployment
+
 **Rollback:** Revert via Git and redeploy:
 
 ```bash

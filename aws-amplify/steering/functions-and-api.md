@@ -141,6 +141,7 @@ const schema = a.schema({
 ```
 
 > **When to use which:**
+>
 > - `a.query()` / `a.mutation()` with `.handler()` — AppSync-native, type-safe, uses the data schema. **Preferred for most custom logic.**
 > - API Gateway + Lambda — Use when you need REST endpoints, webhooks, or third-party integrations that require a specific URL.
 
@@ -212,7 +213,7 @@ Frontend reads custom outputs from the configured Amplify outputs.
 For custom queries and mutations defined via `a.query()` or `a.mutation()`, call them from the client:
 
 ```typescript
-const { data } = await client.queries.myCustomQuery({ input: 'value' });
+const { data } = await client.queries.summarize({ text: '...' });
 ```
 
 For REST/HTTP API outputs added via `backend.addOutput()`, read the endpoint URL from `amplify_outputs.json` and use standard HTTP clients.
